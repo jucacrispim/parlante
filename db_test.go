@@ -19,8 +19,8 @@ func TestClient(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.Remove(DBFILE)
-
-	c, _, err := CreateClient("A test client")
+	s := ClientStorageSQLite{}
+	c, _, err := s.CreateClient("A test client")
 
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -30,7 +30,7 @@ func TestClient(t *testing.T) {
 		t.Fatalf("Bad id for new client")
 	}
 
-	c2, err := GetClientByUUID(c.UUID)
+	c2, err := s.GetClientByUUID(c.UUID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,8 +47,10 @@ func TestClientDomain(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	c, _, _ := CreateClient("the test client")
-	d, err := AddClientDomain(c, "mydomain.net")
+	cs := ClientStorageSQLite{}
+	cds := ClientDomainStorageSQLite{}
+	c, _, _ := cs.CreateClient("the test client")
+	d, err := cds.AddClientDomain(c, "mydomain.net")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +59,7 @@ func TestClientDomain(t *testing.T) {
 		t.Fatalf("bad id for add domain")
 	}
 
-	d2, err := GetClientDomain(c, d.Domain)
+	d2, err := cds.GetClientDomain(c, d.Domain)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,12 +68,12 @@ func TestClientDomain(t *testing.T) {
 		t.Fatalf("Bad domain for get domain %s", d2.Domain)
 	}
 
-	err = RemoveClientDomain(c, d2.Domain)
+	err = cds.RemoveClientDomain(c, d2.Domain)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	d3, err := GetClientDomain(c, d.Domain)
+	d3, err := cds.GetClientDomain(c, d.Domain)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,9 +92,11 @@ func TestComments(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	c, _, _ := CreateClient("the test client")
-	d, _ := AddClientDomain(c, "bla.net")
+	cs := ClientStorageSQLite{}
+	cds := ClientDomainStorageSQLite{}
+	comms := CommentStorageSQLite{}
+	c, _, _ := cs.CreateClient("the test client")
+	d, _ := cds.AddClientDomain(c, "bla.net")
 
 	var tests = []struct {
 		name     string
@@ -106,7 +110,7 @@ func TestComments(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		c, err := CreateComment(c, d, test.name, test.content, test.page_url)
+		c, err := comms.CreateComment(c, d, test.name, test.content, test.page_url)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -116,7 +120,7 @@ func TestComments(t *testing.T) {
 		}
 	}
 
-	allcomments, err := ListComments(CommentsFilter{})
+	allcomments, err := comms.ListComments(CommentsFilter{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +129,7 @@ func TestComments(t *testing.T) {
 		t.Fatalf("Bad len for allcomments %d", len(allcomments))
 	}
 	url := "http://bla.net/post"
-	p1comments, err := ListComments(CommentsFilter{PageURL: &url})
+	p1comments, err := comms.ListComments(CommentsFilter{PageURL: &url})
 	if err != nil {
 		t.Fatal(err)
 	}

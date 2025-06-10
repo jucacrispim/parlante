@@ -8,7 +8,7 @@ BIN_PATH=./$(BUILD_DIR)/$(BIN_NAME)
 OUTFLAG=-o $(BIN_PATH)
 MIGRATIONS_DIR=./migrations/
 
-SCRIPTS_DIR=./scripts/
+SCRIPTS_DIR=./scripts
 
 
 .PHONY: build # - Creates the binary under the build/ directory

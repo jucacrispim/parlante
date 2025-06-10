@@ -10,7 +10,10 @@ import (
 
 var DB *sql.DB
 
-func CreateClient(name string) (Client, string, error) {
+type ClientStorageSQLite struct {
+}
+
+func (s ClientStorageSQLite) CreateClient(name string) (Client, string, error) {
 	c, plain_text, err := NewClient(name)
 	if err != nil {
 		return Client{}, "", err
@@ -22,7 +25,7 @@ func CreateClient(name string) (Client, string, error) {
 	return c, plain_text, nil
 }
 
-func GetClientByUUID(uuid string) (Client, error) {
+func (s ClientStorageSQLite) GetClientByUUID(uuid string) (Client, error) {
 	raw_query := "select * from clients where uuid = ?"
 	row := DB.QueryRow(raw_query, uuid)
 	client := Client{}
@@ -33,7 +36,11 @@ func GetClientByUUID(uuid string) (Client, error) {
 	return client, nil
 }
 
-func AddClientDomain(c Client, domain string) (ClientDomain, error) {
+type ClientDomainStorageSQLite struct {
+}
+
+func (s ClientDomainStorageSQLite) AddClientDomain(c Client, domain string) (
+	ClientDomain, error) {
 	raw_query := "insert into client_domains (client_id, domain) values (?, ?)"
 	d := NewClientDomain(c, domain)
 	row, err := DB.Exec(raw_query, c.ID, d.Domain)
@@ -48,7 +55,8 @@ func AddClientDomain(c Client, domain string) (ClientDomain, error) {
 	return d, nil
 }
 
-func RemoveClientDomain(c Client, domain string) error {
+func (s ClientDomainStorageSQLite) RemoveClientDomain(c Client,
+	domain string) error {
 	raw_query := "delete from client_domains where domain = ? "
 	raw_query += "and client_id = ?"
 	_, err := DB.Exec(raw_query, domain, c.ID)
@@ -58,7 +66,8 @@ func RemoveClientDomain(c Client, domain string) error {
 	return nil
 }
 
-func GetClientDomain(c Client, domain string) (ClientDomain, error) {
+func (s ClientDomainStorageSQLite) GetClientDomain(c Client, domain string) (
+	ClientDomain, error) {
 	raw_query := "select * from client_domains where client_id = ? "
 	raw_query += "and domain = ?"
 	row := DB.QueryRow(raw_query, c.ID, domain)
@@ -70,8 +79,11 @@ func GetClientDomain(c Client, domain string) (ClientDomain, error) {
 	return d, nil
 }
 
-func CreateComment(c Client, d ClientDomain, name string, content string,
-	page_url string) (Comment, error) {
+type CommentStorageSQLite struct {
+}
+
+func (s CommentStorageSQLite) CreateComment(c Client, d ClientDomain,
+	name string, content string, page_url string) (Comment, error) {
 	raw_query := "insert into comments (client_id, domain_id, name, content, page_url) "
 	raw_query += " values (?, ?, ?, ?, ?)"
 
@@ -90,14 +102,8 @@ func CreateComment(c Client, d ClientDomain, name string, content string,
 
 }
 
-type CommentsFilter struct {
-	ClientID *int
-	DomainID *int
-	PageURL  *string
-	Hidden   *bool
-}
-
-func ListComments(filter CommentsFilter) ([]Comment, error) {
+func (s CommentStorageSQLite) ListComments(filter CommentsFilter) (
+	[]Comment, error) {
 
 	where, args := []string{"1 = 1"}, []any{}
 	tb := make(map[string]any)

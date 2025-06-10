@@ -7,13 +7,18 @@ import (
 	"fmt"
 )
 
+// A client that is allowed to use parlante.
 type Client struct {
 	ID   int64
 	Name string
 	UUID string
-	Key  string
+	// The key is used to authenticate the client. It is always stored
+	// as a hashed value.
+	Key string
 }
 
+// UpdateKey creates a new key to the client. Returns the plain text
+// version of the key
 func (c *Client) UpdateKey() (string, error) {
 	key, err := GenKey()
 	if err != nil {
@@ -27,6 +32,9 @@ func (c *Client) UpdateKey() (string, error) {
 	return key, nil
 }
 
+// NewClient instantiate a new client, generating
+// an uuid and a key for the client. Returns the
+// plain text version of the key
 func NewClient(name string) (Client, string, error) {
 	uuid, err := GenUUID4()
 	if err != nil {
@@ -50,6 +58,12 @@ func NewClient(name string) (Client, string, error) {
 	return c, key, nil
 }
 
+type ClientStorage interface {
+	CreateClient(name string) (Client, string, error)
+	GetClientByUUID(uuid string) (Client, error)
+}
+
+// ClientDomain is a domain allowed by a client to have comments
 type ClientDomain struct {
 	ID       int64
 	ClientID int64
@@ -61,8 +75,20 @@ func NewClientDomain(c Client, domain string) ClientDomain {
 		ClientID: c.ID,
 		Domain:   domain,
 	}
-
 	return d
+}
+
+type ClientDomainStorage interface {
+	AddClientDomain(c Client, domain string) (ClientDomain, error)
+	RemoveClientDomain(c Client, domain string) error
+	GetClientDomain(c Client, domain string) (ClientDomain, error)
+}
+
+type CommentsFilter struct {
+	ClientID *int64
+	DomainID *int64
+	PageURL  *string
+	Hidden   *bool
 }
 
 type Comment struct {
@@ -85,6 +111,12 @@ func NewComment(c Client, d ClientDomain, name string, content string,
 		PageURL:  page_url,
 	}
 	return comment
+}
+
+type CommentStorage interface {
+	CreateComment(c Client, d ClientDomain,
+		name string, content string, page_url string) (Comment, error)
+	ListComments(filter CommentsFilter) ([]Comment, error)
 }
 
 func GenUUID4() (string, error) {
