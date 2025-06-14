@@ -132,6 +132,18 @@ func NewCommentStorageInMemory() CommentStorageInMemory {
 	return c
 }
 
+func readFn(reader io.Reader) ([]byte, error) {
+	r, err := io.ReadAll(reader)
+	if string(r) == "bad body" {
+		return nil, errors.New("bad")
+	}
+	return r, err
+}
+
+func errorMarshal(v any) ([]byte, error) {
+	return nil, errors.New("bad")
+}
+
 func TestCreateComment(t *testing.T) {
 
 	s := NewServer()
@@ -341,7 +353,7 @@ func TestListComments(t *testing.T) {
 	}
 }
 
-func TestComments_WithDBErrors(t *testing.T) {
+func TestComments_WithErrors(t *testing.T) {
 
 	s := NewServer()
 	client_storage := NewClientStorageInMemory()
@@ -350,7 +362,8 @@ func TestComments_WithDBErrors(t *testing.T) {
 	comment_storage := NewCommentStorageInMemory()
 	s.CommentStorage = comment_storage
 	s.Server = http.NewServeMux()
-	s.BodyReader = io.ReadAll
+	s.BodyReader = readFn
+	s.JsonMarshaler = errorMarshal
 	s.setupUrls()
 
 	c, _, _ := s.ClientStorage.CreateClient("test client")
@@ -419,6 +432,37 @@ func TestComments_WithDBErrors(t *testing.T) {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("Referer", comment_storage.BadPage)
+				return req
+
+			}(),
+			500,
+		},
+		{
+			"create comment error reading body",
+			func() *http.Request {
+				body := bytes.NewBuffer([]byte("bad body"))
+
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+
+			}(),
+			400,
+		},
+		{
+			"list comments error marshal json",
+			func() *http.Request {
+				payload := CreateCommentRequest{
+					Name:    "Zé",
+					Content: "A comment",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
 				return req
 
 			}(),

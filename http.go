@@ -14,6 +14,7 @@ const ctxClientKey ctxKey = "client"
 const ctxDomainKey ctxKey = "domain"
 
 type bodyReader func(io.Reader) ([]byte, error)
+type jsonMarshaler func(v any) ([]byte, error)
 
 type CreateCommentRequest struct {
 	Name    string `json:"name"`
@@ -35,6 +36,7 @@ type ParlanteServer struct {
 	CommentStorage      CommentStorage
 	Server              *http.ServeMux
 	BodyReader          bodyReader
+	JsonMarshaler       jsonMarshaler
 }
 
 func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +46,6 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 	rawbody, err := s.BodyReader(r.Body)
 	if err != nil {
-		// notest
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -95,9 +96,8 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 		Total:    total,
 		Comments: comments,
 	}
-	j, err := json.Marshal(resp)
+	j, err := s.JsonMarshaler(resp)
 	if err != nil {
-		// notest
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -158,6 +158,7 @@ func NewServer() ParlanteServer {
 	s := ParlanteServer{}
 	s.Server = http.NewServeMux()
 	s.BodyReader = io.ReadAll
+	s.JsonMarshaler = json.Marshal
 	s.setupUrls()
 	return s
 }
