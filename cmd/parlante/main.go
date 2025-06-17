@@ -6,6 +6,8 @@ package main
 import (
 	"flag"
 	"os"
+
+	"github.com/jucacrispim/parlante"
 )
 
 const DEFAULT_DB_PATH = "/var/local/parlante.sqlite"
@@ -18,7 +20,7 @@ func main() {
 	keyfile := flag.String("keyfile", "", "Path for the tls key file")
 	loglevel := flag.String("loglevel", "info", "log level for the server")
 	flag.CommandLine.Parse(os.Args[1:])
-	c := Config{
+	c := parlante.Config{
 		Host:         *host,
 		Port:         *port,
 		CertFilePath: *certfile,
@@ -26,7 +28,7 @@ func main() {
 		DBPath:       *dbpath,
 		LogLevel:     *loglevel,
 	}
-	SetupDB(c.DBPath)
-	s := NewServer(c)
+	parlante.SetupDB(c.DBPath)
+	s := parlante.NewServer(c)
 	s.Run()
 }
