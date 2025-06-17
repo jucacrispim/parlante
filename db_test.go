@@ -9,8 +9,8 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-var DBFILE = "/var/tmp/parlante-test.sqlite"
-var MIGRATIONS_DIR = "./migrations/"
+const DBFILE = "/var/tmp/parlante-test.sqlite"
+const MIGRATIONS_DIR = "./migrations/"
 
 func TestClient(t *testing.T) {
 

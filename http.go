@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -15,6 +16,16 @@ const ctxDomainKey ctxKey = "domain"
 
 type bodyReader func(io.Reader) ([]byte, error)
 type jsonMarshaler func(v any) ([]byte, error)
+
+type StatusedResponseWriter struct {
+	http.ResponseWriter
+	Status int
+}
+
+func (w *StatusedResponseWriter) WriteHeader(code int) {
+	w.Status = code
+	w.ResponseWriter.WriteHeader(code)
+}
 
 type CreateCommentRequest struct {
 	Name    string `json:"name"`
@@ -30,13 +41,27 @@ type ListCommentsResponse struct {
 	Comments []Comment `json:"comments"`
 }
 
+type Config struct {
+	Port         int
+	Host         string
+	CertFilePath string
+	KeyFilePath  string
+	DBPath       string
+	LogLevel     string
+}
+
+func (c Config) UsesSSL() bool {
+	return c.CertFilePath != "" && c.KeyFilePath != ""
+}
+
 type ParlanteServer struct {
 	ClientStorage       ClientStorage
 	ClientDomainStorage ClientDomainStorage
 	CommentStorage      CommentStorage
-	Server              *http.ServeMux
+	mux                 *http.ServeMux
 	BodyReader          bodyReader
 	JsonMarshaler       jsonMarshaler
+	Config              Config
 }
 
 func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +129,22 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
+}
 
+func (s ParlanteServer) Run() {
+	// notest
+	addr := fmt.Sprintf("%s:%d", s.Config.Host, s.Config.Port)
+	var err error
+	if s.Config.UsesSSL() {
+		err = http.ListenAndServeTLS(addr, s.Config.CertFilePath,
+			s.Config.KeyFilePath, s.mux)
+	} else {
+		err = http.ListenAndServe(addr, s.mux)
+
+	}
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
@@ -112,7 +152,8 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 		uuid := r.PathValue("uuid")
 		c, err := s.ClientStorage.GetClientByUUID(uuid)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			Errorf(err.Error())
+			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 		zeroClient := Client{}
@@ -146,19 +187,48 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 }
 
 func (s ParlanteServer) setupUrls() {
-	s.Server.Handle("POST /comment/{uuid}",
-		s.checkClient(http.HandlerFunc(s.CreateComment)))
+	s.mux.Handle("POST /comment/{uuid}",
+		logRequest(s.checkClient(http.HandlerFunc(s.CreateComment))))
 
-	s.Server.Handle("GET /comment/{uuid}",
-		s.checkClient(http.HandlerFunc(s.ListComments)))
+	s.mux.Handle("GET /comment/{uuid}",
+		logRequest(s.checkClient(http.HandlerFunc(s.ListComments))))
 
 }
 
-func NewServer() ParlanteServer {
+func logRequest(h http.Handler) http.Handler {
+	handler := func(w http.ResponseWriter, req *http.Request) {
+		sw := &StatusedResponseWriter{w, http.StatusOK}
+		h.ServeHTTP(sw, req)
+		remote := getIp(req)
+		path := req.URL.Path
+		method := req.Method
+		ua := req.Header.Get("User-Agent")
+		Infof("%s %s %s %d %s\n", remote, method, path, sw.Status, ua)
+	}
+	return http.HandlerFunc(handler)
+}
+
+func getIp(req *http.Request) string {
+	ip := req.Header.Get("X-Real-Ip")
+	if ip == "" {
+		ip = req.Header.Get("X-Forwarded-For")
+	}
+	if ip == "" {
+		ip = req.RemoteAddr
+	}
+	return ip
+}
+
+func NewServer(c Config) ParlanteServer {
 	s := ParlanteServer{}
-	s.Server = http.NewServeMux()
+	s.mux = http.NewServeMux()
 	s.BodyReader = io.ReadAll
 	s.JsonMarshaler = json.Marshal
+	s.Config = c
+	s.ClientStorage = ClientStorageSQLite{}
+	s.ClientDomainStorage = ClientDomainStorageSQLite{}
+	s.CommentStorage = CommentStorageSQLite{}
+	SetLogLevelStr(c.LogLevel)
 	s.setupUrls()
 	return s
 }

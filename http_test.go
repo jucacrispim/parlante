@@ -146,11 +146,12 @@ func errorMarshal(v any) ([]byte, error) {
 
 func TestCreateComment(t *testing.T) {
 
-	s := NewServer()
+	co := Config{}
+	s := NewServer(co)
 	s.ClientStorage = NewClientStorageInMemory()
 	s.ClientDomainStorage = NewClientDomainStorageInMemory()
 	s.CommentStorage = NewCommentStorageInMemory()
-	s.Server = http.NewServeMux()
+	s.mux = http.NewServeMux()
 	s.BodyReader = io.ReadAll
 	s.setupUrls()
 
@@ -237,7 +238,7 @@ func TestCreateComment(t *testing.T) {
 	for _, test := range test_data {
 		t.Run(test.testName, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			s.Server.ServeHTTP(w, test.req)
+			s.mux.ServeHTTP(w, test.req)
 
 			if w.Code != test.status {
 				t.Fatalf("bad status for %d", w.Code)
@@ -249,12 +250,12 @@ func TestCreateComment(t *testing.T) {
 }
 
 func TestListComments(t *testing.T) {
-
-	s := NewServer()
+	co := Config{}
+	s := NewServer(co)
 	s.ClientStorage = NewClientStorageInMemory()
 	s.ClientDomainStorage = NewClientDomainStorageInMemory()
 	s.CommentStorage = NewCommentStorageInMemory()
-	s.Server = http.NewServeMux()
+	s.mux = http.NewServeMux()
 	s.BodyReader = io.ReadAll
 	s.setupUrls()
 
@@ -343,7 +344,7 @@ func TestListComments(t *testing.T) {
 	for _, test := range test_data {
 		t.Run(test.testName, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			s.Server.ServeHTTP(w, test.req)
+			s.mux.ServeHTTP(w, test.req)
 
 			if w.Code != test.status {
 				t.Fatalf("bad status for %d", w.Code)
@@ -355,13 +356,14 @@ func TestListComments(t *testing.T) {
 
 func TestComments_WithErrors(t *testing.T) {
 
-	s := NewServer()
+	co := Config{}
+	s := NewServer(co)
 	client_storage := NewClientStorageInMemory()
 	s.ClientStorage = client_storage
 	s.ClientDomainStorage = NewClientDomainStorageInMemory()
 	comment_storage := NewCommentStorageInMemory()
 	s.CommentStorage = comment_storage
-	s.Server = http.NewServeMux()
+	s.mux = http.NewServeMux()
 	s.BodyReader = readFn
 	s.JsonMarshaler = errorMarshal
 	s.setupUrls()
@@ -390,7 +392,7 @@ func TestComments_WithErrors(t *testing.T) {
 				return req
 
 			}(),
-			500,
+			403,
 		},
 		{
 			"comment with db error on get domain",
@@ -473,7 +475,7 @@ func TestComments_WithErrors(t *testing.T) {
 	for _, test := range test_data {
 		t.Run(test.testName, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			s.Server.ServeHTTP(w, test.req)
+			s.mux.ServeHTTP(w, test.req)
 
 			if w.Code != test.status {
 				t.Fatalf("bad status for %d", w.Code)
@@ -482,4 +484,40 @@ func TestComments_WithErrors(t *testing.T) {
 		})
 	}
 
+}
+
+func TestConfig(t *testing.T) {
+	type checkConf func(c Config)
+	var test_data = []struct {
+		testName string
+		config   Config
+		checkFn  checkConf
+	}{
+		{
+			"test config without ssl",
+			Config{Port: 9000, Host: "0.0.0.0"},
+			func(c Config) {
+				if c.UsesSSL() != false {
+					t.Fatalf("Bad config whithout ssl")
+				}
+			},
+		},
+		{
+			"test config wit ssl",
+			Config{Port: 9000, Host: "0.0.0.0",
+				CertFilePath: "/bla",
+				KeyFilePath:  "/ble"},
+			func(c Config) {
+				if c.UsesSSL() != true {
+					t.Fatalf("Bad config whith ssl")
+				}
+			},
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			test.checkFn(test.config)
+		})
+	}
 }
