@@ -10,6 +10,8 @@ import (
 
 var DB *sql.DB
 
+const DEFAULT_DB_PATH = "/var/local/parlante.sqlite"
+
 type ClientStorageSQLite struct {
 }
 
@@ -36,6 +38,33 @@ func (s ClientStorageSQLite) GetClientByUUID(uuid string) (Client, error) {
 	return client, nil
 }
 
+func (s ClientStorageSQLite) ListClients() ([]Client, error) {
+	raw_query := "select * from clients"
+	rows, err := DB.Query(raw_query)
+	if err != nil {
+		return nil, err
+	}
+	clients := make([]Client, 0)
+
+	for rows.Next() {
+		client := Client{}
+		err := rows.Scan(&client.ID, &client.Name, &client.UUID, &client.Key)
+
+		if err != nil {
+			return nil, err
+		}
+		clients = append(clients, client)
+	}
+	return clients, nil
+
+}
+
+func (s ClientStorageSQLite) RemoveClient(uuid string) error {
+	raw_query := "delete from clients where uuid = ?"
+	_, err := DB.Exec(raw_query, uuid)
+	return err
+}
+
 type ClientDomainStorageSQLite struct {
 }
 
@@ -60,10 +89,7 @@ func (s ClientDomainStorageSQLite) RemoveClientDomain(c Client,
 	raw_query := "delete from client_domains where domain = ? "
 	raw_query += "and client_id = ?"
 	_, err := DB.Exec(raw_query, domain, c.ID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (s ClientDomainStorageSQLite) GetClientDomain(c Client, domain string) (

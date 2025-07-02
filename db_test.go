@@ -38,6 +38,25 @@ func TestClient(t *testing.T) {
 	if c2.ID != c.ID {
 		t.Fatalf("bad id for get client by uuid")
 	}
+
+	clients, _ := s.ListClients()
+
+	if len(clients) != 1 {
+		t.Fatalf("bad clients list len")
+	}
+
+	err = s.RemoveClient(c.UUID)
+
+	if err != nil {
+		t.Fatalf("Error removing client %s", err.Error())
+	}
+
+	clients, _ = s.ListClients()
+
+	if len(clients) != 0 {
+		t.Fatalf("client not removed")
+	}
+
 }
 
 func TestClientDomain(t *testing.T) {

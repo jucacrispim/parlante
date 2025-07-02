@@ -61,6 +61,8 @@ func NewClient(name string) (Client, string, error) {
 type ClientStorage interface {
 	CreateClient(name string) (Client, string, error)
 	GetClientByUUID(uuid string) (Client, error)
+	ListClients() ([]Client, error)
+	RemoveClient(uuid string) error
 }
 
 // ClientDomain is a domain allowed by a client to have comments

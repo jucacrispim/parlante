@@ -3,9 +3,15 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test -v ./...
 BIN_NAME=parlante
+TUI_BIN_NAME=parlante-tui
 BUILD_DIR=build
+PARLANTE_CMDFILE=cmd/parlante/main.go
+PARLANTE_TUI_CMDFILE=cmd/parlante-tui/main.go
 BIN_PATH=./$(BUILD_DIR)/$(BIN_NAME)
+TUI_BIN_PATH=./$(BUILD_DIR)/$(TUI_BIN_NAME)
 OUTFLAG=-o $(BIN_PATH)
+TUI_OUTFLAG=-o $(TUI_BIN_PATH)
+
 MIGRATIONS_DIR=./migrations/
 
 SCRIPTS_DIR=./scripts
@@ -13,7 +19,8 @@ SCRIPTS_DIR=./scripts
 
 .PHONY: build # - Creates the binary under the build/ directory
 build:
-	$(GOBUILD) $(OUTFLAG)
+	$(GOBUILD) $(OUTFLAG) $(PARLANTE_CMDFILE)
+	$(GOBUILD) $(TUI_OUTFLAG) $(PARLANTE_TUI_CMDFILE)
 
 .PHONY: test # - Run all tests
 test:
