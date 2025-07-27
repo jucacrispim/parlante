@@ -1,0 +1,155 @@
+package tui
+
+import (
+	"errors"
+	"strings"
+	"testing"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/jucacrispim/parlante"
+)
+
+func TestRemoveDomainScreen(t *testing.T) {
+	cs := parlante.NewClientStorageInMemory()
+	ds := parlante.NewClientDomainStorageInMemory()
+	main := newMainScreen(&cs, &ds, nil)
+
+	client, _, _ := cs.CreateClient("client")
+	ds.AddClientDomain(client, "to-be-removed")
+	domain, _ := ds.GetClientDomain(client, "to-be-removed")
+
+	tests := []struct {
+		testName string
+		screenFn func() removeDomainScreen
+		msgFn    func(removeDomainScreen) tea.Msg
+		checkFn  func(tea.Model, tea.Cmd)
+	}{
+		{
+			"remove domain successfully",
+			func() removeDomainScreen {
+				return newRemoveDomainScreen(&main, &domain)
+			},
+			func(m removeDomainScreen) tea.Msg {
+				return m.removeDomain()()
+			},
+			func(m tea.Model, cmd tea.Cmd) {
+				_, ok := m.(AddRemoveItemScreen)
+				if !ok {
+					t.Fatalf("expected AddRemoveItemScreen, got %T", m)
+				}
+				d, _ := ds.GetClientDomain(*domain.Client, domain.Domain)
+				zeroDomain := parlante.ClientDomain{}
+				if d != zeroDomain {
+					t.Fatal("domain was not removed")
+				}
+			},
+		},
+		{
+			"remove domain with error",
+			func() removeDomainScreen {
+				return newRemoveDomainScreen(&main, &domain)
+			},
+			func(m removeDomainScreen) tea.Msg {
+				ds.ForceRemoveError(true)
+				return m.removeDomain()()
+			},
+			func(m tea.Model, cmd tea.Cmd) {
+				ds.ForceRemoveError(false)
+				nm, ok := m.(removeDomainScreen)
+				if !ok {
+					t.Fatalf("expected removeDomainScreen, got %T", m)
+				}
+				if nm.err == nil {
+					t.Fatal("expected error to be set")
+				}
+			},
+		},
+		{
+			"confirm domain removal via enter",
+			func() removeDomainScreen {
+				return newRemoveDomainScreen(&main, &domain)
+			},
+			func(m removeDomainScreen) tea.Msg {
+				return tea.KeyMsg{Type: tea.KeyEnter}
+			},
+			func(m tea.Model, cmd tea.Cmd) {
+				_, ok := m.(removeDomainScreen)
+				if !ok {
+					t.Fatalf("expected removeDomainScreen, got %T", m)
+				}
+				msg := cmd()
+				_, ok = msg.(removeDomainMsg)
+				if !ok {
+					t.Fatalf("expected removeDomainMsg, got %T", msg)
+				}
+			},
+		},
+		{
+			"cancel domain removal via esc",
+			func() removeDomainScreen {
+				return newRemoveDomainScreen(&main, &domain)
+			},
+			func(m removeDomainScreen) tea.Msg {
+				return tea.KeyMsg{Type: tea.KeyEsc}
+			},
+			func(m tea.Model, cmd tea.Cmd) {
+				_, ok := m.(AddRemoveItemScreen)
+				if !ok {
+					t.Fatalf("expected AddRemoveItemScreen, got %T", m)
+				}
+			},
+		},
+		{
+			"render view without error",
+			func() removeDomainScreen {
+				return newRemoveDomainScreen(&main, &domain)
+			},
+			func(m removeDomainScreen) tea.Msg {
+				return nil
+			},
+			func(m tea.Model, _ tea.Cmd) {
+				nm, ok := m.(removeDomainScreen)
+				if !ok {
+					t.Fatalf("expected removeDomainScreen, got %T", m)
+				}
+				view := nm.View()
+				if !strings.Contains(view, "Remove domain") ||
+					!strings.Contains(view, "Really want to remove domain to-be-removed?") ||
+					!strings.Contains(view, "confirm") ||
+					!strings.Contains(view, "cancel") {
+					t.Fatalf("view missing expected content: %s", view)
+				}
+			},
+		},
+		{
+			"render view with error",
+			func() removeDomainScreen {
+				s := newRemoveDomainScreen(&main, &domain)
+				s.err = errors.New("failed to remove domain")
+				return s
+			},
+			func(m removeDomainScreen) tea.Msg {
+				return nil
+			},
+			func(m tea.Model, _ tea.Cmd) {
+				nm, ok := m.(removeDomainScreen)
+				if !ok {
+					t.Fatalf("expected removeDomainScreen, got %T", m)
+				}
+				view := nm.View()
+				if !strings.Contains(view, nm.err.Error()) {
+					t.Fatalf("expected error message in view, got: %s", view)
+				}
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.testName, func(t *testing.T) {
+			screen := test.screenFn()
+			msg := test.msgFn(screen)
+			m, cmd := screen.Update(msg)
+			test.checkFn(m, cmd)
+		})
+	}
+}

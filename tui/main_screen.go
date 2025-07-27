@@ -111,6 +111,10 @@ func (m mainScreen) getNextAction() (tea.Model, tea.Cmd) {
 	case "Clients":
 		c := newClientListScreen(m)
 		return c, c.Init()
+
+	case "Domains":
+		c := newDomainListScreen(&m)
+		return c, c.Init()
 	}
 	return m, nil // notest
 }

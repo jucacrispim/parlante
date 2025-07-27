@@ -41,7 +41,7 @@ type ClientLoader struct {
 	Storage parlante.ClientStorage
 }
 
-func (l ClientLoader) LoadClients() tea.Cmd {
+func (l ClientLoader) Load() tea.Cmd {
 	return func() tea.Msg {
 		clients, err := l.Storage.ListClients()
 
@@ -82,6 +82,6 @@ func newClientListScreen(mainScreen mainScreen) AddRemoveItemScreen {
 		ShowStatusBar:   true,
 		ShowHelp:        true,
 	}
-	s := NewAddRemoveItemScreen(&h, opts, nav, l.LoadClients)
+	s := NewAddRemoveItemScreen(&h, opts, nav, l.Load)
 	return s
 }

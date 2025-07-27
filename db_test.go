@@ -87,6 +87,16 @@ func TestClientDomain(t *testing.T) {
 		t.Fatalf("Bad domain for get domain %s", d2.Domain)
 	}
 
+	domains, err := cds.ListDomains()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	if len(domains) != 1 {
+		t.Fatalf("bad domains list %d", len(domains))
+	}
+	if domains[0].Client.UUID != c.UUID {
+		t.Fatalf("bad client for domain %s", domains[0].Client.UUID)
+	}
 	err = cds.RemoveClientDomain(c, d2.Domain)
 	if err != nil {
 		t.Fatal(err)

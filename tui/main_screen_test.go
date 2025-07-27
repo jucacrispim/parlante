@@ -86,6 +86,29 @@ func TestMainScreen(t *testing.T) {
 
 			},
 		},
+		{
+			"test select domain",
+			func() mainScreen {
+				s := newMainScreen(&c, &cd, &comm)
+				s.list.CursorDown()
+				s.list.CursorDown()
+				return s
+			},
+			tea.KeyMsg{Type: tea.KeyEnter},
+			func(m tea.Model, cmd tea.Cmd) {
+				_, ok := m.(AddRemoveItemScreen)
+				if !ok {
+					t.Fatalf("Bad screen for domains")
+				}
+				r := cmd()
+				_, ok = r.(ItemListMsg)
+
+				if !ok {
+					t.Fatalf("bad load fn return for domain")
+				}
+
+			},
+		},
 	}
 
 	for _, test := range tests {

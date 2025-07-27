@@ -112,7 +112,7 @@ func TestCustomKeyMapList(t *testing.T) {
 				listItem("item 1"),
 				listItem("item 2"),
 			}
-			keys := DefaultListKeyMap()
+			keys := DefaultAddRemoveItemListKeyMap()
 			opts := ListOpts{
 				Title:         "Test",
 				ShowHelp:      true,

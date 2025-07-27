@@ -241,7 +241,7 @@ func NewAddRemoveItemScreen(
 	nav AddRemoveScreenNavigation,
 	loadfn LoadItemsFn) AddRemoveItemScreen {
 
-	kb := DefaultListKeyMap()
+	kb := DefaultAddRemoveItemListKeyMap()
 	m := AddRemoveItemScreen{
 		Header:     header,
 		ListOpts:   opts,
@@ -265,8 +265,30 @@ type ListKeyMap struct {
 	ShowAll bool
 }
 
-// DefaultListKeyMap returns a default set of keybindings for list screens.
-func DefaultListKeyMap() ListKeyMap {
+// DefaultAddRemoveItemListKeyMap returns a default set of keybindings
+// for list screens.
+func DefaultAddRemoveItemListKeyMap() ListKeyMap {
+	basemap := baseListKeyMap()
+	return ListKeyMap{
+		KeyMap: basemap,
+
+		Add: key.NewBinding(
+			key.WithKeys("a"),
+			key.WithHelp("a", "add"),
+		),
+
+		Remove: key.NewBinding(
+			key.WithKeys("d"),
+			key.WithHelp("d", "remove"),
+		),
+		PrevScreen: key.NewBinding(
+			key.WithKeys("b"),
+			key.WithHelp("b", "previous screen"),
+		),
+	}
+}
+
+func baseListKeyMap() list.KeyMap {
 	basemap := list.KeyMap{
 		// Browsing.
 		CursorUp: key.NewBinding(
@@ -329,24 +351,7 @@ func DefaultListKeyMap() ListKeyMap {
 		),
 		ForceQuit: key.NewBinding(key.WithKeys("ctrl+c")),
 	}
-
-	return ListKeyMap{
-		KeyMap: basemap,
-
-		Add: key.NewBinding(
-			key.WithKeys("a"),
-			key.WithHelp("a", "add"),
-		),
-
-		Remove: key.NewBinding(
-			key.WithKeys("d"),
-			key.WithHelp("d", "remove"),
-		),
-		PrevScreen: key.NewBinding(
-			key.WithKeys("b"),
-			key.WithHelp("b", "previous screen"),
-		),
-	}
+	return basemap
 }
 
 func (k ListKeyMap) GetHelpKey() key.Binding {

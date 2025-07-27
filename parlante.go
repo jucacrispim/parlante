@@ -70,12 +70,14 @@ type ClientDomain struct {
 	ID       int64
 	ClientID int64
 	Domain   string
+	Client   *Client
 }
 
 func NewClientDomain(c Client, domain string) ClientDomain {
 	d := ClientDomain{
 		ClientID: c.ID,
 		Domain:   domain,
+		Client:   &c,
 	}
 	return d
 }
@@ -84,6 +86,7 @@ type ClientDomainStorage interface {
 	AddClientDomain(c Client, domain string) (ClientDomain, error)
 	RemoveClientDomain(c Client, domain string) error
 	GetClientDomain(c Client, domain string) (ClientDomain, error)
+	ListDomains() ([]ClientDomain, error)
 }
 
 type CommentsFilter struct {
@@ -101,6 +104,8 @@ type Comment struct {
 	Content  string
 	PageURL  string
 	Hidden   bool
+	Client   *Client
+	Domain   *ClientDomain
 }
 
 func NewComment(c Client, d ClientDomain, name string, content string,
@@ -111,6 +116,8 @@ func NewComment(c Client, d ClientDomain, name string, content string,
 		Name:     name,
 		Content:  content,
 		PageURL:  page_url,
+		Client:   &c,
+		Domain:   &d,
 	}
 	return comment
 }

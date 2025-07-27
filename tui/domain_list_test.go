@@ -9,29 +9,32 @@ import (
 	"github.com/jucacrispim/parlante"
 )
 
-func TestClientItem(t *testing.T) {
+func TestDomainItem(t *testing.T) {
 	c := parlante.NewClientStorageInMemory()
+	d := parlante.NewClientDomainStorageInMemory()
 	client, _, _ := c.CreateClient("test client")
+	domain, _ := d.AddClientDomain(client, "bla.net")
 	defer func() {
 		c.RemoveClient(client.UUID)
+		d.RemoveClientDomain(client, domain.Domain)
 	}()
 
-	item := clientItem{client: client}
+	item := domainItem{domain: domain}
 
-	if item.Title() != client.Name {
+	if item.Title() != domain.Domain {
 		t.Fatalf("Bad title for item %s", item.Title())
 	}
 
-	if item.Description() != fmt.Sprintf("uuid: %s", client.UUID) {
+	if item.Description() != fmt.Sprintf("client: %s", client.Name) {
 		t.Fatalf("Bad description for item %s", item.Description())
 	}
 
-	if item.FilterValue() != client.Name {
+	if item.FilterValue() != domain.Domain {
 		t.Fatalf("Bad filter value for item %s", item.FilterValue())
 	}
 }
 
-func TestClientListScreen(t *testing.T) {
+func TestDomainListScreen(t *testing.T) {
 
 	c := parlante.NewClientStorageInMemory()
 	cd := parlante.NewClientDomainStorageInMemory()
@@ -39,10 +42,13 @@ func TestClientListScreen(t *testing.T) {
 	main := newMainScreen(&c, &cd, &comm)
 
 	c1, _, _ := c.CreateClient("a client")
-	c2, _, _ := c.CreateClient("another client")
+	d1, _ := cd.AddClientDomain(c1, "bla.net")
+	d2, _ := cd.AddClientDomain(c1, "ble.net")
+
 	defer func() {
 		c.RemoveClient(c1.UUID)
-		c.RemoveClient(c2.UUID)
+		cd.RemoveClientDomain(c1, d1.Domain)
+		cd.RemoveClientDomain(c1, d2.Domain)
 
 	}()
 
@@ -53,9 +59,9 @@ func TestClientListScreen(t *testing.T) {
 		checkFn  func(tea.Model, tea.Cmd)
 	}{
 		{
-			"test load clients",
+			"test load domains",
 			func() AddRemoveItemScreen {
-				return newClientListScreen(main)
+				return newDomainListScreen(&main)
 			},
 			func(m AddRemoveItemScreen) tea.Msg {
 				return m.Init()()
@@ -66,45 +72,45 @@ func TestClientListScreen(t *testing.T) {
 					t.Fatalf("bad model loading clients")
 				}
 				view := nm.View()
-				if !strings.Contains(view, c1.Name) ||
-					!strings.Contains(view, c2.Name) {
+				if !strings.Contains(view, d1.Domain) ||
+					!strings.Contains(view, d2.Domain) {
 					t.Fatalf("clients not loaded")
 				}
 
 			},
 		},
 		{
-			"test load clients with error",
+			"test load domains with error",
 			func() AddRemoveItemScreen {
-				c.ForceListError(true)
-				return newClientListScreen(main)
+				cd.ForceListError(true)
+				return newDomainListScreen(&main)
 			},
 			func(m AddRemoveItemScreen) tea.Msg {
 				return m.Init()()
 			},
 			func(m tea.Model, cmd tea.Cmd) {
-				c.ForceListError(false)
+				cd.ForceListError(false)
 				nm, ok := m.(AddRemoveItemScreen)
 				if !ok {
-					t.Fatalf("bad model loading clients")
+					t.Fatalf("bad model loading domains")
 				}
 				if nm.err == nil {
-					t.Fatalf("No error with load client error")
+					t.Fatalf("No error with load domain error")
 				}
 			},
 		},
 		{
 			"test GetAddScreen",
 			func() AddRemoveItemScreen {
-				return newClientListScreen(main)
+				return newDomainListScreen(&main)
 			},
 			func(m AddRemoveItemScreen) tea.Msg {
 				return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}}
 			},
 			func(m tea.Model, cmd tea.Cmd) {
-				_, ok := m.(addClientScreen)
+				_, ok := m.(addDomainScreen)
 				if !ok {
-					t.Fatalf("bad model for add client")
+					t.Fatalf("bad model for add domain")
 				}
 
 			},
@@ -112,8 +118,9 @@ func TestClientListScreen(t *testing.T) {
 		{
 			"test GetRemoveScreen",
 			func() AddRemoveItemScreen {
-				s := newClientListScreen(main)
+				s := newDomainListScreen(&main)
 				items := s.Init()()
+
 				i := items.(ItemListMsg)
 				s.List.SetItems(i.Items)
 				s.List.CursorDown()
@@ -123,12 +130,12 @@ func TestClientListScreen(t *testing.T) {
 				return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}}
 			},
 			func(m tea.Model, cmd tea.Cmd) {
-				nm, ok := m.(removeClientScreen)
+				nm, ok := m.(removeDomainScreen)
 				if !ok {
 					t.Fatalf("bad model for remove client")
 				}
 
-				if nm.client.UUID != c2.UUID {
+				if nm.domain.ID != d2.ID {
 					t.Fatalf("bad client on remove")
 				}
 
@@ -137,7 +144,7 @@ func TestClientListScreen(t *testing.T) {
 		{
 			"test GetPreviousScreen",
 			func() AddRemoveItemScreen {
-				return newClientListScreen(main)
+				return newDomainListScreen(&main)
 			},
 			func(m AddRemoveItemScreen) tea.Msg {
 				return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}}

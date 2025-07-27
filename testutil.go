@@ -65,8 +65,10 @@ func NewClientStorageInMemory() ClientStorageInMemory {
 }
 
 type ClientDomainStorageInMemory struct {
-	data      map[string]ClientDomain
-	BadDomain string
+	data        map[string]ClientDomain
+	BadDomain   string
+	listError   bool
+	removeError bool
 }
 
 func (s ClientDomainStorageInMemory) AddClientDomain(c Client, domain string) (
@@ -78,6 +80,9 @@ func (s ClientDomainStorageInMemory) AddClientDomain(c Client, domain string) (
 }
 
 func (s ClientDomainStorageInMemory) RemoveClientDomain(c Client, domain string) error {
+	if s.removeError {
+		return errors.New("bad remove domain")
+	}
 	key := c.UUID + "-" + domain
 	delete(s.data, key)
 	return nil
@@ -94,6 +99,25 @@ func (s ClientDomainStorageInMemory) GetClientDomain(c Client, domain string) (
 		return ClientDomain{}, nil
 	}
 	return d, nil
+}
+
+func (s ClientDomainStorageInMemory) ListDomains() ([]ClientDomain, error) {
+	if s.listError {
+		return nil, errors.New("Bad list domain error!")
+	}
+	domains := make([]ClientDomain, 0)
+	for _, v := range s.data {
+		domains = append(domains, v)
+	}
+	return domains, nil
+
+}
+func (s *ClientDomainStorageInMemory) ForceListError(f bool) {
+	s.listError = f
+}
+
+func (s *ClientDomainStorageInMemory) ForceRemoveError(f bool) {
+	s.removeError = f
 }
 
 func NewClientDomainStorageInMemory() ClientDomainStorageInMemory {

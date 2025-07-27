@@ -105,6 +105,47 @@ func (s ClientDomainStorageSQLite) GetClientDomain(c Client, domain string) (
 	return d, nil
 }
 
+func (s ClientDomainStorageSQLite) ListDomains() ([]ClientDomain, error) {
+	raw_query := `
+select
+  cd.id, cd.client_id, cd.domain,
+  c.id, c.name, c.uuid, c.key
+
+from
+  client_domains cd
+
+join
+  clients c on c.id = cd.client_id
+`
+
+	rows, err := DB.Query(raw_query)
+	if err != nil {
+		return nil, err
+	}
+	domains := make([]ClientDomain, 0)
+	for rows.Next() {
+		c := Client{}
+		cd := ClientDomain{}
+
+		err := rows.Scan(
+			&cd.ID,
+			&cd.ClientID,
+			&cd.Domain,
+			&c.ID,
+			&c.Name,
+			&c.UUID,
+			&c.Key,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		cd.Client = &c
+		domains = append(domains, cd)
+	}
+	return domains, nil
+}
+
 type CommentStorageSQLite struct {
 }
 

@@ -39,3 +39,11 @@ var helpDescStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
 }).Align(lipgloss.Left)
 
 var titleStyle = list.DefaultStyles().Title
+
+var highlightTitleStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
+	Light: "#b58900",
+	Dark:  "#ffcc00",
+}).Background(lipgloss.AdaptiveColor{
+	Light: "#e0ecff",
+	Dark:  "#5f5fd7",
+})

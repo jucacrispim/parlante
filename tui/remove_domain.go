@@ -9,58 +9,59 @@ import (
 	"github.com/jucacrispim/parlante"
 )
 
-type removeClientMsg struct {
-	client parlante.Client
+type removeDomainMsg struct {
+	domain *parlante.ClientDomain
 	err    error
 }
 
-type removeClientScreen struct {
-	mainScreen    mainScreen
-	clientStorage parlante.ClientStorage
-	client        parlante.Client
+type removeDomainScreen struct {
+	mainScreen    *mainScreen
+	domainStorage parlante.ClientDomainStorage
+	domain        *parlante.ClientDomain
 	help          help.Model
 	keys          ConfirmCancelKeyMap
 	err           error
 }
 
-func (m removeClientScreen) Init() tea.Cmd {
+func (m removeDomainScreen) Init() tea.Cmd {
 	return nil
 }
 
-func (m removeClientScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m removeDomainScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.mainScreen.header.Update(msg)
 	switch msg := msg.(type) {
-	case removeClientMsg:
+	case removeDomainMsg:
 		if msg.err != nil {
 			m.err = msg.err
 			return m, nil
 		}
-		model := newClientListScreen(m.mainScreen)
+		model := newDomainListScreen(m.mainScreen)
 		return model, model.Init()
 
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			return m, m.removeClient()
+			return m, m.removeDomain()
 
 		case "esc":
-			model := newClientListScreen(m.mainScreen)
+			model := newDomainListScreen(m.mainScreen)
 			return model, model.Init()
 
 		}
 	}
+
 	return m, nil
 }
 
-func (m removeClientScreen) View() string {
+func (m removeDomainScreen) View() string {
 	s := m.mainScreen.header.View()
-	title := "  " + titleStyle.Render("Remove client")
+	title := "  " + titleStyle.Render("Remove domain")
 	s += title + "\n\n\n"
 	var content string
 	if m.err != nil {
 		content = m.err.Error()
 	} else {
-		content = fmt.Sprintf("Really want to remove client %s?", m.client.Name)
+		content = fmt.Sprintf("Really want to remove domain %s?", m.domain.Domain)
 	}
 	s += defaultTextStyle.Render(content)
 
@@ -73,24 +74,23 @@ func (m removeClientScreen) View() string {
 	return s
 }
 
-func (m removeClientScreen) removeClient() tea.Cmd {
+func (m removeDomainScreen) removeDomain() tea.Cmd {
 	return func() tea.Msg {
-		err := m.clientStorage.RemoveClient(m.client.UUID)
-		msg := removeClientMsg{
-			client: m.client,
+		err := m.domainStorage.RemoveClientDomain(*m.domain.Client, m.domain.Domain)
+		msg := removeDomainMsg{
+			domain: m.domain,
 			err:    err,
 		}
 		return msg
 	}
 }
 
-func newRemoveClientScreen(
-	mainScreen mainScreen,
-	client parlante.Client) removeClientScreen {
-	m := removeClientScreen{
-		mainScreen:    mainScreen,
-		clientStorage: mainScreen.clientStorage,
-		client:        client,
+func newRemoveDomainScreen(main *mainScreen,
+	domain *parlante.ClientDomain) removeDomainScreen {
+	m := removeDomainScreen{
+		mainScreen:    main,
+		domainStorage: main.domainStorage,
+		domain:        domain,
 		keys:          NewConfirmCancelKeyMap(),
 		help:          createHelp(),
 	}
