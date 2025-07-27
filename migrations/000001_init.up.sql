@@ -1,6 +1,6 @@
 create table if not exists clients (
        id INTEGER PRIMARY KEY AUTOINCREMENT,
-       name STRING not null,
+       name STRING unique not null,
        uuid string unique not null,
        key string not null
 );
@@ -12,7 +12,8 @@ create table if not exists client_domains (
        id INTEGER PRIMARY KEY AUTOINCREMENT,
        client_id integer not null,
        domain string not null,
-       FOREIGN KEY(client_id) REFERENCES clients(id)
+       FOREIGN KEY(client_id) REFERENCES clients(id),
+       Unique(client_id, domain) on conflict fail
 );
 
 CREATE INDEX IF NOT EXISTS client_domain_client_idx ON client_domains(client_id);
