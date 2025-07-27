@@ -129,12 +129,12 @@ func newMainScreen(
 			"add / remove clients",
 		},
 		mainScreenItem{
-			"Comments",
-			"manage comments",
-		},
-		mainScreenItem{
 			"Domains",
 			"add / remove domains",
+		},
+		mainScreenItem{
+			"Comments",
+			"manage comments",
 		},
 	}
 

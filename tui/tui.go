@@ -179,7 +179,7 @@ func (m AddRemoveItemScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			screen := m.Navigation.GetRemoveScreen(m.List.SelectedItem())
 			return screen, screen.Init()
 
-		case key.Matches(msg, m.keys.PrevScreen):
+		case key.Matches(msg, m.keys.PrevScreen, m.keys.Quit):
 			screen := m.Navigation.GetPreviousScreen()
 			return screen, screen.Init()
 		}
