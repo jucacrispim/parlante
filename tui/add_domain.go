@@ -163,8 +163,10 @@ func (m addDomainScreen) View() string {
 		s += content
 	} else {
 		s += m.mainScreen.header.View()
-		title = "New domain for "
-		title = titleStyle.Render(title) + highlightTitleStyle.Render(m.selectedClient.Name)
+		d := make(map[string]any, 0)
+		d["clientName"] = highlightTitleStyle.Render(m.selectedClient.Name)
+		msg := parlante.Tprintf(MESSAGE_NEW_DOMAIN_FOR, d)
+		title = titleStyle.Render(msg)
 		content = m.textinput.View()
 		s += title + "\n\n" + content
 	}
@@ -211,12 +213,12 @@ func newAddDomainScreen(main *mainScreen) addDomainScreen {
 	listOpts := ListOpts{
 		ShowDescription: false,
 		ShowStatusBar:   false,
-		Title:           "Choose a client",
+		Title:           MESSAGE_CHOOSE_CLIENT,
 	}
 	m.clients = NewCustomKeyMapList(listOpts, []list.Item{}, m.keys)
 	ti := textinput.New()
 	ti.Width = 20
-	ti.Placeholder = "Domain name"
+	ti.Placeholder = MESSAGE_DOMAIN_NAME
 	ti.TextStyle = defaultTextStyle
 	ti.PromptStyle = defaultTextStyle
 	m.textinput = ti

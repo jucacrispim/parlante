@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/jucacrispim/parlante"
@@ -14,7 +12,9 @@ type domainItem struct {
 
 func (i domainItem) Title() string { return i.domain.Domain }
 func (i domainItem) Description() string {
-	return fmt.Sprintf("client: %s", i.domain.Client.Name)
+	data := make(map[string]any)
+	data["clientName"] = i.domain.Client.Name
+	return parlante.Tprintf(MESSAGE_DOMAIN_DESCRIPTION, data)
 }
 func (i domainItem) FilterValue() string { return i.domain.Domain }
 
@@ -77,7 +77,7 @@ func newDomainListScreen(mainScreen *mainScreen) AddRemoveItemScreen {
 	}
 	h := mainScreen.header
 	opts := ListOpts{
-		Title:           "Domains",
+		Title:           MESSAGE_DOMAINS,
 		ShowDescription: true,
 		ShowStatusBar:   true,
 		ShowHelp:        true,

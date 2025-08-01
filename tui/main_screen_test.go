@@ -61,7 +61,7 @@ func TestMainScreen(t *testing.T) {
 			nil,
 			func(m tea.Model, cmd tea.Cmd) {
 				view := m.View()
-				if !strings.Contains(view, "enter select") {
+				if !strings.Contains(view, MESSAGE_KEY_HELP_SELECT) {
 					t.Fatalf("missing key on help %s", view)
 				}
 			},
@@ -90,7 +90,6 @@ func TestMainScreen(t *testing.T) {
 			"test select domain",
 			func() mainScreen {
 				s := newMainScreen(&c, &cd, &comm)
-				s.list.CursorDown()
 				s.list.CursorDown()
 				return s
 			},

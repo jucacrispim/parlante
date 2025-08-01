@@ -57,7 +57,7 @@ func (m addClientScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m addClientScreen) View() string {
 	s := m.mainScreen.header.View()
-	title := "  " + titleStyle.Render("Add new client")
+	title := "  " + titleStyle.Render(MESSAGE_ADD_CLIENT)
 	s += title + "\n\n"
 	var content string
 	if m.err != nil {
@@ -89,7 +89,7 @@ func (m addClientScreen) addClient() tea.Cmd {
 func newAddClientScreen(mainScreen mainScreen) addClientScreen {
 	ti := textinput.New()
 	ti.Width = 20
-	ti.Placeholder = "client name"
+	ti.Placeholder = MESSAGE_CLIENT_NAME
 	ti.TextStyle = defaultTextStyle
 	ti.PromptStyle = defaultTextStyle
 	ti.Focus()

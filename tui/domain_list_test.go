@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -25,7 +24,9 @@ func TestDomainItem(t *testing.T) {
 		t.Fatalf("Bad title for item %s", item.Title())
 	}
 
-	if item.Description() != fmt.Sprintf("client: %s", client.Name) {
+	data := make(map[string]any)
+	data["clientName"] = domain.Client.Name
+	if item.Description() != parlante.Tprintf(MESSAGE_DOMAIN_DESCRIPTION, data) {
 		t.Fatalf("Bad description for item %s", item.Description())
 	}
 

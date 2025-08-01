@@ -116,10 +116,14 @@ func TestRemoveClientScreen(t *testing.T) {
 					t.Fatalf("bad model for View test")
 				}
 				view := nm.View()
-				if !strings.Contains(view, "Remove client") ||
-					!strings.Contains(view, "Really want to remove client client-to-remove?") ||
-					!strings.Contains(view, "cancel") ||
-					!strings.Contains(view, "confirm") {
+				data := make(map[string]any)
+				data["name"] = clientToRemove.Name
+				expected_msg := parlante.Tprintf(
+					MESSAGE_REMOVE_CLIENT_CONFIRM, data)
+				if !strings.Contains(view, MESSAGE_REMOVE_CLIENT) ||
+					!strings.Contains(view, expected_msg) ||
+					!strings.Contains(view, MESSAGE_KEY_HELP_CANCEL) ||
+					!strings.Contains(view, MESSAGE_KEY_HELP_CONFIRM) {
 					t.Fatalf("missing view elements %s", view)
 				}
 			},

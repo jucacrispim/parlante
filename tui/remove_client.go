@@ -54,13 +54,16 @@ func (m removeClientScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m removeClientScreen) View() string {
 	s := m.mainScreen.header.View()
-	title := "  " + titleStyle.Render("Remove client")
+	title := "  " + titleStyle.Render(MESSAGE_REMOVE_CLIENT)
 	s += title + "\n\n\n"
 	var content string
 	if m.err != nil {
 		content = m.err.Error()
 	} else {
-		content = fmt.Sprintf("Really want to remove client %s?", m.client.Name)
+		data := make(map[string]any, 0)
+		data["name"] = m.client.Name
+		content = fmt.Sprintf(
+			parlante.Tprintf(MESSAGE_REMOVE_CLIENT_CONFIRM, data))
 	}
 	s += defaultTextStyle.Render(content)
 

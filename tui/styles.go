@@ -30,12 +30,12 @@ var defaultTextStyle = lipgloss.NewStyle().Foreground(
 var helpViewStyle = lipgloss.NewStyle().Padding(1, 0, 0, 2)
 var helpKeyStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
 	Light: "#909090",
-	Dark:  "#626262",
+	Dark:  "#dcdcdc",
 }).Align(lipgloss.Left)
 
 var helpDescStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
 	Light: "#B2B2B2",
-	Dark:  "#4A4A4A",
+	Dark:  "#8b8682",
 }).Align(lipgloss.Left)
 
 var titleStyle = list.DefaultStyles().Title

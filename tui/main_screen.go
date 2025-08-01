@@ -7,6 +7,14 @@ import (
 	"github.com/jucacrispim/parlante"
 )
 
+type nextScreenType int
+
+const (
+	screenClient nextScreenType = iota
+	screenDomain
+	screenComment
+)
+
 type mainScreenKeyMap struct {
 	Select     key.Binding
 	CursorUp   key.Binding
@@ -33,26 +41,27 @@ func newMainScreenKeyMap() mainScreenKeyMap {
 	return mainScreenKeyMap{
 		CursorUp: key.NewBinding(
 			key.WithKeys("up", "k"),
-			key.WithHelp("↑/k", "up"),
+			key.WithHelp("↑/k", MESSAGE_KEY_HELP_UP),
 		),
 		CursorDown: key.NewBinding(
 			key.WithKeys("down", "j"),
-			key.WithHelp("↓/j", "down"),
+			key.WithHelp("↓/j", MESSAGE_KEY_HELP_DOWN),
 		),
 		Select: key.NewBinding(
 			key.WithKeys("enter"),
-			key.WithHelp("enter", "select"),
+			key.WithHelp("enter", MESSAGE_KEY_HELP_SELECT),
 		),
 		Quit: key.NewBinding(
 			key.WithKeys("q", "esc"),
-			key.WithHelp("q", "quit"),
+			key.WithHelp("q", MESSAGE_KEY_HELP_QUIT),
 		),
 	}
 }
 
 type mainScreenItem struct {
-	name  string
-	descr string
+	name       string
+	descr      string
+	screenType nextScreenType
 }
 
 func (i mainScreenItem) Title() string       { return i.name }
@@ -105,14 +114,13 @@ func (m mainScreen) View() string {
 
 func (m mainScreen) getNextAction() (tea.Model, tea.Cmd) {
 	choice := m.list.SelectedItem().(mainScreenItem)
-	ch := choice.name
 
-	switch ch {
-	case "Clients":
+	switch choice.screenType {
+	case screenClient:
 		c := newClientListScreen(m)
 		return c, c.Init()
 
-	case "Domains":
+	case screenDomain:
 		c := newDomainListScreen(&m)
 		return c, c.Init()
 	}
@@ -125,21 +133,24 @@ func newMainScreen(
 	cos parlante.CommentStorage) mainScreen {
 	items := []list.Item{
 		mainScreenItem{
-			"Clients",
-			"add / remove clients",
+			MESSAGE_CLIENTS,
+			MESSAGE_CLIENTS_SCREEN_DESCR,
+			screenClient,
 		},
 		mainScreenItem{
-			"Domains",
-			"add / remove domains",
+			MESSAGE_DOMAINS,
+			MESSAGE_DOMAINS_SCREEN_DESCR,
+			screenDomain,
 		},
 		mainScreenItem{
-			"Comments",
-			"manage comments",
+			MESSAGE_COMMENTS,
+			MESSAGE_COMMENTS_SCREEN_DESCR,
+			screenComment,
 		},
 	}
 
 	opts := ListOpts{
-		Title:           "Choose one",
+		Title:           MESSAGE_CHOOSE_ONE,
 		ShowDescription: true,
 		ShowStatusBar:   false,
 		ShowHelp:        true,

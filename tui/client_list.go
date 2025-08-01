@@ -77,7 +77,7 @@ func newClientListScreen(mainScreen mainScreen) AddRemoveItemScreen {
 	}
 	h := mainScreen.header
 	opts := ListOpts{
-		Title:           "Clients",
+		Title:           MESSAGE_CLIENTS,
 		ShowDescription: true,
 		ShowStatusBar:   true,
 		ShowHelp:        true,

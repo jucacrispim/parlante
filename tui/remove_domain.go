@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -55,13 +54,15 @@ func (m removeDomainScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m removeDomainScreen) View() string {
 	s := m.mainScreen.header.View()
-	title := "  " + titleStyle.Render("Remove domain")
+	title := "  " + titleStyle.Render(MESSAGE_REMOVE_DOMAIN)
 	s += title + "\n\n\n"
 	var content string
 	if m.err != nil {
 		content = m.err.Error()
 	} else {
-		content = fmt.Sprintf("Really want to remove domain %s?", m.domain.Domain)
+		d := make(map[string]any)
+		d["domain"] = m.domain.Domain
+		content = parlante.Tprintf(MESSAGE_REMOVE_DOMAIN_CONFIRM, d)
 	}
 	s += defaultTextStyle.Render(content)
 

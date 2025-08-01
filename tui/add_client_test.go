@@ -90,9 +90,9 @@ func TestAddClientScreen(t *testing.T) {
 					t.Fatalf("bad model for View test")
 				}
 				view := nm.View()
-				if !strings.Contains(view, "Add new client") ||
-					!strings.Contains(view, "cancel") ||
-					!strings.Contains(view, "confirm") {
+				if !strings.Contains(view, MESSAGE_ADD_CLIENT) ||
+					!strings.Contains(view, MESSAGE_KEY_HELP_CANCEL) ||
+					!strings.Contains(view, MESSAGE_KEY_HELP_CONFIRM) {
 					t.Fatalf("missing expected elements %s", view)
 				}
 			},

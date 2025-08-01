@@ -31,7 +31,8 @@ func (m *Header) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Header) View() string {
-	padded := lipgloss.PlaceHorizontal(m.width, lipgloss.Left, " "+m.Text)
+	padded := lipgloss.PlaceHorizontal(
+		m.width, lipgloss.Left, " "+m.Text)
 	return m.Style.Render(padded) + "\n\n"
 }
 
@@ -274,16 +275,16 @@ func DefaultAddRemoveItemListKeyMap() ListKeyMap {
 
 		Add: key.NewBinding(
 			key.WithKeys("a"),
-			key.WithHelp("a", "add"),
+			key.WithHelp("a", MESSAGE_KEY_HELP_ADD),
 		),
 
 		Remove: key.NewBinding(
 			key.WithKeys("d"),
-			key.WithHelp("d", "remove"),
+			key.WithHelp("d", MESSAGE_KEY_HELP_REMOVE),
 		),
 		PrevScreen: key.NewBinding(
 			key.WithKeys("b"),
-			key.WithHelp("b", "previous screen"),
+			key.WithHelp("b", MESSAGE_KEY_HELP_PREV_SCREEN),
 		),
 	}
 }
@@ -293,61 +294,62 @@ func baseListKeyMap() list.KeyMap {
 		// Browsing.
 		CursorUp: key.NewBinding(
 			key.WithKeys("up", "k"),
-			key.WithHelp("↑/k", "up"),
+			key.WithHelp("↑/k", MESSAGE_KEY_HELP_UP),
 		),
 		CursorDown: key.NewBinding(
 			key.WithKeys("down", "j"),
-			key.WithHelp("↓/j", "down"),
+			key.WithHelp("↓/j", MESSAGE_KEY_HELP_DOWN),
 		),
 		PrevPage: key.NewBinding(
 			key.WithKeys("left", "h", "pgup", "u"),
-			key.WithHelp("←/h/pgup", "prev page"),
+			key.WithHelp("←/h/pgup", MESSAGE_KEY_HELP_PREV_PAGE),
 		),
 		NextPage: key.NewBinding(
 			key.WithKeys("right", "l", "pgdown", "f"),
-			key.WithHelp("→/l/pgdn", "next page"),
+			key.WithHelp("→/l/pgdn", MESSAGE_KEY_HELP_NEXT_PAGE),
 		),
 		GoToStart: key.NewBinding(
 			key.WithKeys("home", "g"),
-			key.WithHelp("g/home", "go to start"),
+			key.WithHelp("g/home", MESSAGE_KEY_HELP_LIST_START),
 		),
 		GoToEnd: key.NewBinding(
 			key.WithKeys("end", "G"),
-			key.WithHelp("G/end", "go to end"),
+			key.WithHelp("G/end", MESSAGE_KEY_HELP_LIST_END),
 		),
 		Filter: key.NewBinding(
 			key.WithKeys("/"),
-			key.WithHelp("/", "filter"),
+			key.WithHelp("/", MESSAGE_KEY_HELP_LIST_FILTER),
 		),
 		ClearFilter: key.NewBinding(
 			key.WithKeys("esc"),
-			key.WithHelp("esc", "clear filter"),
+			key.WithHelp("esc", MESSAGE_KEY_HELP_LIST_CLEAR_FILTER),
 		),
 
 		// Filtering.
 		CancelWhileFiltering: key.NewBinding(
 			key.WithKeys("esc"),
-			key.WithHelp("esc", "cancel"),
+			key.WithHelp("esc", MESSAGE_KEY_HELP_CANCEL),
 		),
 		AcceptWhileFiltering: key.NewBinding(
-			key.WithKeys("enter", "tab", "shift+tab", "ctrl+k", "up", "ctrl+j", "down"),
-			key.WithHelp("enter", "apply filter"),
+			key.WithKeys("enter", "tab", "shift+tab", "ctrl+k",
+				"up", "ctrl+j", "down"),
+			key.WithHelp("enter", MESSAGE_KEY_HELP_APPLY_FILTER),
 		),
 
 		// Toggle help.
 		ShowFullHelp: key.NewBinding(
 			key.WithKeys("?"),
-			key.WithHelp("?", "more"),
+			key.WithHelp("?", MESSAGE_KEY_HELP_MORE),
 		),
 		CloseFullHelp: key.NewBinding(
 			key.WithKeys("?"),
-			key.WithHelp("?", "close help"),
+			key.WithHelp("?", MESSAGE_KEY_HELP_CLOSE_HELP),
 		),
 
 		// Quitting.
 		Quit: key.NewBinding(
 			key.WithKeys("q", "esc"),
-			key.WithHelp("q", "quit"),
+			key.WithHelp("q", MESSAGE_KEY_HELP_QUIT),
 		),
 		ForceQuit: key.NewBinding(key.WithKeys("ctrl+c")),
 	}
@@ -367,8 +369,10 @@ func (k ListKeyMap) ShortHelp() []key.Binding {
 }
 
 func (k ListKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{{k.CursorUp, k.CursorDown, k.Quit, k.PrevScreen},
-		{k.GoToEnd}}
+	return [][]key.Binding{
+		{k.CursorUp, k.CursorDown, k.Quit, k.PrevScreen},
+		{k.GoToEnd},
+	}
 }
 
 type ConfirmCancelKeyMap struct {
@@ -388,11 +392,11 @@ func NewConfirmCancelKeyMap() ConfirmCancelKeyMap {
 	return ConfirmCancelKeyMap{
 		Cancel: key.NewBinding(
 			key.WithKeys("esc"),
-			key.WithHelp("esc", "cancel"),
+			key.WithHelp("esc", MESSAGE_KEY_HELP_CANCEL),
 		),
 		Confirm: key.NewBinding(
 			key.WithKeys("enter"),
-			key.WithHelp("enter", "confirm"),
+			key.WithHelp("enter", MESSAGE_KEY_HELP_CONFIRM),
 		),
 	}
 }

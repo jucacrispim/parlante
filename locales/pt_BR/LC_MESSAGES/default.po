@@ -1,0 +1,153 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2025-07-27 13:10-0300\n"
+"Last-Translator: Juca Crispim <jucacrispim@gmail.com>\n"
+"Language-Team: Brazilian Portuguese <ldpbr-"
+"translation@lists.sourceforge.net>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: xgotext\n"
+
+#: tui/messages.go:14
+msgid "Add new client"
+msgstr "Adicionar novo cliente"
+
+#: tui/messages.go:20
+msgid "Choose a client"
+msgstr "Escolha um cliente"
+
+#: tui/messages.go:13
+msgid "Choose one"
+msgstr "Escolha um"
+
+#: tui/messages.go:7
+msgid "Clients"
+msgstr "Clientes"
+
+#: tui/messages.go:11
+msgid "Comments"
+msgstr "Comentários"
+
+#: tui/messages.go:9
+msgid "Domains"
+msgstr "Domínios"
+
+#: tui/messages.go:22
+msgid "New domain for {{.clientName}}"
+msgstr "Novo dominio para {{.clientName}}"
+
+#: tui/messages.go:17
+msgid "Really want to remove client {{.name}}?"
+msgstr "Realmente quer remover o cliente {{.name}}?"
+
+#: tui/messages.go:24
+msgid "Really want to remove domain {{.domain}}?"
+msgstr "Realmente quer remover o domínio {{.domain}}?"
+
+#: tui/messages.go:16
+msgid "Remove client"
+msgstr "adcionar / remover clientes"
+
+#: tui/messages.go:23
+msgid "Remove domain"
+msgstr "Remover domínio"
+
+#: tui/messages.go:27
+msgid "add"
+msgstr "adicionar"
+
+#: tui/messages.go:8
+msgid "add / remove clients"
+msgstr "adcionar / remover clientes"
+
+#: tui/messages.go:10
+msgid "add / remove domains"
+msgstr "adicionar / remover domínios"
+
+#: tui/messages.go:40
+msgid "apply filter"
+msgstr "aplicar filtro"
+
+#: tui/messages.go:38
+msgid "cancel"
+msgstr "cancelar"
+
+#: tui/messages.go:37
+msgid "clear filter"
+msgstr "limpar filtros"
+
+#: tui/messages.go:15
+msgid "client name"
+msgstr "nome do cliente"
+
+#: tui/messages.go:19
+msgid "client: {{.clientName}}"
+msgstr "cliente: {{.clientName}}"
+
+#: tui/messages.go:42
+msgid "close help"
+msgstr "fechar ajuda"
+
+#: tui/messages.go:39
+msgid "confirm"
+msgstr "confirmar"
+
+#: tui/messages.go:21
+msgid "domain name"
+msgstr "nome do domínio"
+
+#: tui/messages.go:31
+msgid "down"
+msgstr "pra baixo"
+
+#: tui/messages.go:36
+msgid "filter"
+msgstr "filtrar"
+
+#: tui/messages.go:35
+msgid "go to end"
+msgstr "ir para o fim"
+
+#: tui/messages.go:34
+msgid "go to start"
+msgstr "ir para o começo"
+
+#: tui/messages.go:12
+msgid "manage comments"
+msgstr "gerenciar comentários"
+
+#: tui/messages.go:41
+msgid "more"
+msgstr "mais"
+
+#: tui/messages.go:33
+msgid "next page"
+msgstr "próxima página"
+
+#: tui/messages.go:32
+msgid "prev page"
+msgstr "página anterior"
+
+#: tui/messages.go:29
+msgid "prev screen"
+msgstr "tela anterior"
+
+#: tui/messages.go:43
+msgid "quit"
+msgstr "sair"
+
+#: tui/messages.go:28
+msgid "remove"
+msgstr "remover"
+
+#: tui/messages.go:44
+msgid "select"
+msgstr "selecionar"
+
+#: tui/messages.go:30
+msgid "up"
+msgstr "pra baixo"

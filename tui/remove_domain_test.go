@@ -113,10 +113,15 @@ func TestRemoveDomainScreen(t *testing.T) {
 					t.Fatalf("expected removeDomainScreen, got %T", m)
 				}
 				view := nm.View()
-				if !strings.Contains(view, "Remove domain") ||
-					!strings.Contains(view, "Really want to remove domain to-be-removed?") ||
-					!strings.Contains(view, "confirm") ||
-					!strings.Contains(view, "cancel") {
+				data := make(map[string]any)
+				data["domain"] = domain.Domain
+				expected_msg := parlante.Tprintf(
+					MESSAGE_REMOVE_DOMAIN_CONFIRM, data)
+
+				if !strings.Contains(view, MESSAGE_REMOVE_DOMAIN) ||
+					!strings.Contains(view, expected_msg) ||
+					!strings.Contains(view, MESSAGE_KEY_HELP_CONFIRM) ||
+					!strings.Contains(view, MESSAGE_KEY_HELP_CANCEL) {
 					t.Fatalf("view missing expected content: %s", view)
 				}
 			},

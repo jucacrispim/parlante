@@ -1,6 +1,8 @@
 module github.com/jucacrispim/parlante
 
-go 1.23.1
+go 1.23.5
+
+toolchain go1.23.11
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.18.3
@@ -26,6 +28,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/leonelquinteros/gotext v1.7.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect

@@ -1,0 +1,148 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: \n"
+"X-Generator: xgotext\n"
+
+#: tui/messages.go:14
+msgid "Add new client"
+msgstr ""
+
+#: tui/messages.go:20
+msgid "Choose a client"
+msgstr ""
+
+#: tui/messages.go:13
+msgid "Choose one"
+msgstr ""
+
+#: tui/messages.go:7
+msgid "Clients"
+msgstr ""
+
+#: tui/messages.go:11
+msgid "Comments"
+msgstr ""
+
+#: tui/messages.go:9
+msgid "Domains"
+msgstr ""
+
+#: tui/messages.go:22
+msgid "New domain for {{.clientName}}"
+msgstr ""
+
+#: tui/messages.go:17
+msgid "Really want to remove client {{.name}}?"
+msgstr ""
+
+#: tui/messages.go:24
+msgid "Really want to remove domain {{.domain}}?"
+msgstr ""
+
+#: tui/messages.go:16
+msgid "Remove client"
+msgstr ""
+
+#: tui/messages.go:23
+msgid "Remove domain"
+msgstr ""
+
+#: tui/messages.go:27
+msgid "add"
+msgstr ""
+
+#: tui/messages.go:8
+msgid "add / remove clients"
+msgstr ""
+
+#: tui/messages.go:10
+msgid "add / remove domains"
+msgstr ""
+
+#: tui/messages.go:40
+msgid "apply filter"
+msgstr ""
+
+#: tui/messages.go:38
+msgid "cancel"
+msgstr ""
+
+#: tui/messages.go:37
+msgid "clear filter"
+msgstr ""
+
+#: tui/messages.go:15
+msgid "client name"
+msgstr ""
+
+#: tui/messages.go:19
+msgid "client: {{.clientName}}"
+msgstr ""
+
+#: tui/messages.go:42
+msgid "close help"
+msgstr ""
+
+#: tui/messages.go:39
+msgid "confirm"
+msgstr ""
+
+#: tui/messages.go:21
+msgid "domain name"
+msgstr ""
+
+#: tui/messages.go:31
+msgid "down"
+msgstr ""
+
+#: tui/messages.go:36
+msgid "filter"
+msgstr ""
+
+#: tui/messages.go:35
+msgid "go to end"
+msgstr ""
+
+#: tui/messages.go:34
+msgid "go to start"
+msgstr ""
+
+#: tui/messages.go:12
+msgid "manage comments"
+msgstr ""
+
+#: tui/messages.go:41
+msgid "more"
+msgstr ""
+
+#: tui/messages.go:33
+msgid "next page"
+msgstr ""
+
+#: tui/messages.go:32
+msgid "prev page"
+msgstr ""
+
+#: tui/messages.go:29
+msgid "prev screen"
+msgstr ""
+
+#: tui/messages.go:43
+msgid "quit"
+msgstr ""
+
+#: tui/messages.go:28
+msgid "remove"
+msgstr ""
+
+#: tui/messages.go:44
+msgid "select"
+msgstr ""
+
+#: tui/messages.go:30
+msgid "up"
+msgstr ""

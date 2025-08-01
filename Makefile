@@ -16,6 +16,9 @@ MIGRATIONS_DIR=./migrations/
 
 SCRIPTS_DIR=./scripts
 
+LOCALES_DIR=./locales
+PTBR_LOCALES_DIR=$(LOCALES_DIR)/pt_BR/LC_MESSAGES
+
 
 .PHONY: build # - Creates the binary under the build/ directory
 build:
@@ -73,6 +76,13 @@ migrate_up:  # Runs the up migrations files
 
 migrate_down:  # Runs the down migrations files
 	migrate -path=$(MIGRATIONS_DIR) -database $(DB) -verbose down 1
+
+extract_translation:  # Extract strings for translation
+	xgotext -in . -out $(LOCALES_DIR) -default messages
+	msgmerge -U $(PTBR_LOCALES_DIR)/default.po $(LOCALES_DIR)/messages.pot
+
+compile_translation:  # Compile .po files to .mo files
+	msgfmt $(PTBR_LOCALES_DIR)/default.po -o $(PTBR_LOCALES_DIR)/default.mo
 
 
 .PHONY: help  # - Show this help text

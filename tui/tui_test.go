@@ -51,8 +51,8 @@ func TestCustomKeyMapList(t *testing.T) {
 			nil,
 			func(m tea.Model, cmd tea.Cmd) {
 				view := m.View()
-				if !strings.Contains(view, "q quit") ||
-					strings.Contains(view, "previous screen") {
+				if !strings.Contains(view, MESSAGE_KEY_HELP_QUIT) ||
+					strings.Contains(view, MESSAGE_KEY_HELP_PREV_SCREEN) {
 					t.Fatalf("bad short help %s", view)
 				}
 			},
@@ -62,8 +62,8 @@ func TestCustomKeyMapList(t *testing.T) {
 			tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'?'}},
 			func(m tea.Model, cmd tea.Cmd) {
 				view := m.View()
-				if !strings.Contains(view, "quit") ||
-					!strings.Contains(view, "previous screen") {
+				if !strings.Contains(view, MESSAGE_KEY_HELP_QUIT) ||
+					!strings.Contains(view, MESSAGE_KEY_HELP_PREV_SCREEN) {
 					t.Fatalf("bad full help %s", view)
 				}
 			},
@@ -196,7 +196,8 @@ func TestAddRemoveItemScreen(t *testing.T) {
 			func(m tea.Model, cmd tea.Cmd) {
 				_, ok := m.(testPreviousScreen)
 				if !ok {
-					t.Fatalf("Bad model for AddRemoveItemScreen GetPreviousScreen")
+					t.Fatalf(
+						"Bad model for AddRemoveItemScreen GetPreviousScreen")
 				}
 			},
 		},
@@ -220,7 +221,7 @@ func TestAddRemoveItemScreen(t *testing.T) {
 			tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'?'}},
 			func(m tea.Model, cmd tea.Cmd) {
 				view := m.View()
-				if !strings.Contains(view, "previous screen") {
+				if !strings.Contains(view, MESSAGE_KEY_HELP_PREV_SCREEN) {
 					t.Fatalf("bad full help %s", view)
 				}
 			},
@@ -232,7 +233,7 @@ func TestAddRemoveItemScreen(t *testing.T) {
 			},
 			func(m tea.Model, cmd tea.Cmd) {
 				view := m.View()
-				if strings.Contains(view, "d remove") {
+				if strings.Contains(view, MESSAGE_KEY_HELP_REMOVE) {
 					t.Fatalf("remove key present in help without items")
 				}
 			},
