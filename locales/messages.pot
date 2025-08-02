@@ -27,7 +27,7 @@ msgstr ""
 msgid "Comments"
 msgstr ""
 
-#: http.go:159
+#: http.go:174
 msgid "Comments (%d)"
 msgstr ""
 
@@ -39,7 +39,7 @@ msgstr ""
 msgid "New domain for {{.clientName}}"
 msgstr ""
 
-#: http.go:161
+#: http.go:176
 msgid "No comments."
 msgstr ""
 

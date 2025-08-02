@@ -5,6 +5,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
+	"time"
 )
 
 // A client that is allowed to use parlante.
@@ -100,24 +101,27 @@ type Comment struct {
 	ID       int64
 	ClientID int64
 	DomainID int64
-	Name     string
+	Author   string
 	Content  string
 	PageURL  string
 	Hidden   bool
 	Client   *Client
 	Domain   *ClientDomain
+	// unix timestamp for comment creating
+	Timestamp int64
 }
 
-func NewComment(c Client, d ClientDomain, name string, content string,
+func NewComment(c Client, d ClientDomain, author string, content string,
 	page_url string) Comment {
 	comment := Comment{
-		ClientID: c.ID,
-		DomainID: d.ID,
-		Name:     name,
-		Content:  content,
-		PageURL:  page_url,
-		Client:   &c,
-		Domain:   &d,
+		ClientID:  c.ID,
+		DomainID:  d.ID,
+		Author:    author,
+		Content:   content,
+		PageURL:   page_url,
+		Client:    &c,
+		Domain:    &d,
+		Timestamp: time.Now().Unix(),
 	}
 	return comment
 }

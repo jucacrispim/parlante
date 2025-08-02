@@ -139,7 +139,9 @@ func TestComments(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		c, err := comms.CreateComment(c, d, test.name, test.content, test.page_url)
+		c, err := comms.CreateComment(
+			c, d, test.name, test.content, test.page_url)
+
 		if err != nil {
 			t.Fatal(err)
 		}

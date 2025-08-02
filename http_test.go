@@ -22,7 +22,11 @@ func errorMarshal(v any) ([]byte, error) {
 	return nil, errors.New("bad")
 }
 
-func errorHtmlRender(s string, d map[string]any) ([]byte, error) {
+func errorHtmlRender(
+	s string,
+	lang string,
+	tz string,
+	d map[string]any) ([]byte, error) {
 	return nil, errors.New("bad")
 }
 
@@ -146,34 +150,34 @@ func TestListComments(t *testing.T) {
 
 	comments := []Comment{
 		{
-			Name:    "Zé",
+			Author:  "Zé",
 			Content: "The comment",
 			PageURL: "http://bla.net/post1",
 		},
 		{
-			Name:    "Tião",
+			Author:  "Tião",
 			Content: "The other comment",
 			PageURL: "http://bla.net/post1",
 		},
 		{
-			Name:    "Jão",
+			Author:  "Jão",
 			Content: "The new comment",
 			PageURL: "http://bla.net/post1",
 		},
 		{
-			Name:    "Zé",
+			Author:  "Zé",
 			Content: "The new new comment",
 			PageURL: "http://bla.net/post2",
 		},
 		{
-			Name:    "Jão",
+			Author:  "Jão",
 			Content: "Another comment",
 			PageURL: "http://bla.net/post2",
 		},
 	}
 
 	for _, co := range comments {
-		s.CommentStorage.CreateComment(c, d, co.Name, co.Content, co.PageURL)
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
 	}
 
 	var test_data = []struct {
@@ -251,34 +255,34 @@ func TestListCommentsHTML(t *testing.T) {
 
 	comments := []Comment{
 		{
-			Name:    "Zé",
+			Author:  "Zé",
 			Content: "The comment",
 			PageURL: "http://bla.net/post1",
 		},
 		{
-			Name:    "Tião",
+			Author:  "Tião",
 			Content: "The other comment",
 			PageURL: "http://bla.net/post1",
 		},
 		{
-			Name:    "Jão",
+			Author:  "Jão",
 			Content: "The new comment",
 			PageURL: "http://bla.net/post1",
 		},
 		{
-			Name:    "Zé",
+			Author:  "Zé",
 			Content: "The new new comment",
 			PageURL: "http://bla.net/post2",
 		},
 		{
-			Name:    "Jão",
+			Author:  "Jão",
 			Content: "Another comment",
 			PageURL: "http://bla.net/post2",
 		},
 	}
 
 	for _, co := range comments {
-		s.CommentStorage.CreateComment(c, d, co.Name, co.Content, co.PageURL)
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
 	}
 
 	var test_data = []struct {

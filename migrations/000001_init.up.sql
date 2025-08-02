@@ -27,6 +27,7 @@ create table if not exists comments (
        content text not null,
        page_url string not null,
        hidden boolean not null default false,
+       timestamp timestamp not null,
        FOREIGN KEY(domain_id) REFERENCES client_domains(id),
        FOREIGN KEY(client_id) REFERENCES clients(id)
 );

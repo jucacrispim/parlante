@@ -11,7 +11,7 @@ func TestTemplating(t *testing.T) {
 	data["header"] = "bla"
 	data["noComments"] = "no comments"
 	data["comments"] = make([]Comment, 0)
-	b, err := RenderTemplate(tmpl, data)
+	b, err := RenderTemplate(tmpl, "pt_br", "UTC", data)
 	if err != nil {
 		t.Fatalf("Error rendering template: %s", err.Error())
 	}

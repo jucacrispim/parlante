@@ -16,7 +16,11 @@ const ctxDomainKey ctxKey = "domain"
 
 type bodyReader func(io.Reader) ([]byte, error)
 type jsonMarshaler func(v any) ([]byte, error)
-type htmlRenderer func(s string, d map[string]any) ([]byte, error)
+type htmlRenderer func(
+	s string,
+	lang string,
+	timezone string,
+	d map[string]any) ([]byte, error)
 
 type StatusedResponseWriter struct {
 	http.ResponseWriter
@@ -37,9 +41,15 @@ type CreateCommentResponse struct {
 	Msg string `json:"msg"`
 }
 
+type CommentResponse struct {
+	Author    string `json:"author"`
+	Content   string `json:"content"`
+	Timestamp int64  `json:"timestamp"`
+}
+
 type ListCommentsResponse struct {
-	Total    int       `json:"total"`
-	Comments []Comment `json:"comments"`
+	Total    int               `json:"total"`
+	Comments []CommentResponse `json:"comments"`
 }
 
 type Config struct {
@@ -119,9 +129,18 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	total := len(comments)
+	cresp := make([]CommentResponse, 0)
+	for _, c := range comments {
+		resp := CommentResponse{
+			Author:    c.Author,
+			Content:   c.Content,
+			Timestamp: c.Timestamp,
+		}
+		cresp = append(cresp, resp)
+	}
 	resp := ListCommentsResponse{
 		Total:    total,
-		Comments: comments,
+		Comments: cresp,
 	}
 	j, err := s.JsonMarshaler(resp)
 	if err != nil {
@@ -140,6 +159,7 @@ func (s ParlanteServer) ListCommentsHTML(
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
 	page_url := r.Header.Get("Referer")
 	lang := getRequestLanguage(r)
+	tz := r.Header.Get("X-Timezone")
 
 	filter := CommentsFilter{
 		ClientID: &c.ID,
@@ -161,7 +181,7 @@ func (s ParlanteServer) ListCommentsHTML(
 	tmplCtx["noComments"] = loc.Get("No comments.")
 	tmplCtx["comments"] = comments
 
-	b, err := s.HtmlRenderer("comments.html", tmplCtx)
+	b, err := s.HtmlRenderer("comments.html", lang, tz, tmplCtx)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

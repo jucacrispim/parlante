@@ -3,7 +3,10 @@
 
   {{range .comments}}
   <div class="parlante-comment">
-    <div class="parlante-comment-author">{{.Name}}</div>
+    <div class="parlante-comment-header">
+      <span class="parlante-comment-author">{{.Author}}</span>
+      <span class="parlante-comment-date"> – {{fmtTimestap .Timestamp}}</span>
+    </div>
     <div class="parlante-comment-content">{{.Content}}</div>
   </div>
   {{else}}

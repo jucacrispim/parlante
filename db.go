@@ -151,12 +151,13 @@ type CommentStorageSQLite struct {
 
 func (s CommentStorageSQLite) CreateComment(c Client, d ClientDomain,
 	name string, content string, page_url string) (Comment, error) {
-	raw_query := "insert into comments (client_id, domain_id, name, content, page_url) "
-	raw_query += " values (?, ?, ?, ?, ?)"
+	raw_query := `
+insert into comments (client_id, domain_id, name, content, page_url, timestamp)
+values (?, ?, ?, ?, ?, ?)`
 
 	comment := NewComment(c, d, name, content, page_url)
-	row, err := DB.Exec(raw_query, c.ID, d.ID, comment.Name,
-		comment.Content, comment.PageURL)
+	row, err := DB.Exec(raw_query, c.ID, d.ID, comment.Author,
+		comment.Content, comment.PageURL, comment.Timestamp)
 	if err != nil {
 		return Comment{}, err
 	}
@@ -196,7 +197,8 @@ func (s CommentStorageSQLite) ListComments(filter CommentsFilter) (
 	for rows.Next() {
 		comment := Comment{}
 		err := rows.Scan(&comment.ID, &comment.ClientID, &comment.DomainID,
-			&comment.Name, &comment.Content, &comment.PageURL, &comment.Hidden)
+			&comment.Author, &comment.Content, &comment.PageURL, &comment.Hidden,
+			&comment.Timestamp)
 		if err != nil {
 			return nil, err
 		}
