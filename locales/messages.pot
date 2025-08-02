@@ -27,12 +27,20 @@ msgstr ""
 msgid "Comments"
 msgstr ""
 
+#: http.go:159
+msgid "Comments (%d)"
+msgstr ""
+
 #: tui/messages.go:9
 msgid "Domains"
 msgstr ""
 
 #: tui/messages.go:22
 msgid "New domain for {{.clientName}}"
+msgstr ""
+
+#: http.go:161
+msgid "No comments."
 msgstr ""
 
 #: tui/messages.go:17

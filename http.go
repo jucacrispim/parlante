@@ -16,6 +16,7 @@ const ctxDomainKey ctxKey = "domain"
 
 type bodyReader func(io.Reader) ([]byte, error)
 type jsonMarshaler func(v any) ([]byte, error)
+type htmlRenderer func(s string, d map[string]any) ([]byte, error)
 
 type StatusedResponseWriter struct {
 	http.ResponseWriter
@@ -61,6 +62,7 @@ type ParlanteServer struct {
 	mux                 *http.ServeMux
 	BodyReader          bodyReader
 	JsonMarshaler       jsonMarshaler
+	HtmlRenderer        htmlRenderer
 	Config              Config
 }
 
@@ -104,7 +106,7 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
-	page_url := r.Header.Get("referer")
+	page_url := r.Header.Get("Referer")
 	filter := CommentsFilter{
 		ClientID: &c.ID,
 		DomainID: &cd.ID,
@@ -129,6 +131,45 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
+}
+
+func (s ParlanteServer) ListCommentsHTML(
+	w http.ResponseWriter, r *http.Request) {
+
+	c := r.Context().Value(ctxClientKey).(Client)
+	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
+	page_url := r.Header.Get("Referer")
+	lang := getRequestLanguage(r)
+
+	filter := CommentsFilter{
+		ClientID: &c.ID,
+		DomainID: &cd.ID,
+		PageURL:  &page_url,
+	}
+
+	comments, err := s.CommentStorage.ListComments(filter)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	loc := GetLocale(lang)
+	tmplCtx := make(map[string]any)
+	total := len(comments)
+	header := loc.Get("Comments (%d)", total)
+	tmplCtx["header"] = header
+	tmplCtx["noComments"] = loc.Get("No comments.")
+	tmplCtx["comments"] = comments
+
+	b, err := s.HtmlRenderer("comments.html", tmplCtx)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(b)
 }
 
 func (s ParlanteServer) Run() {
@@ -193,6 +234,9 @@ func (s ParlanteServer) setupUrls() {
 	s.mux.Handle("GET /comment/{uuid}",
 		logRequest(s.checkClient(http.HandlerFunc(s.ListComments))))
 
+	s.mux.Handle("GET /comment/{uuid}/html",
+		logRequest(s.checkClient(http.HandlerFunc(s.ListCommentsHTML))))
+
 }
 
 func logRequest(h http.Handler) http.Handler {
@@ -219,11 +263,21 @@ func getIp(req *http.Request) string {
 	return ip
 }
 
+func getRequestLanguage(r *http.Request) string {
+	lang := r.Header.Get("Accepted-Language")
+	if lang == "" {
+		return ""
+	}
+	preferred := strings.Split(lang, ",")[0]
+	return strings.ReplaceAll(preferred, "-", "_")
+}
+
 func NewServer(c Config) ParlanteServer {
 	s := ParlanteServer{}
 	s.mux = http.NewServeMux()
 	s.BodyReader = io.ReadAll
 	s.JsonMarshaler = json.Marshal
+	s.HtmlRenderer = RenderTemplate
 	s.Config = c
 	s.ClientStorage = ClientStorageSQLite{}
 	s.ClientDomainStorage = ClientDomainStorageSQLite{}

@@ -21,6 +21,11 @@ var embeddedLocales embed.FS
 func GetDefaultLocale() *gotext.Locale {
 	lang := os.Getenv("LANG")
 	lang = strings.Split(lang, ".")[0]
+	return GetLocale(lang)
+}
+
+// GetLocale returns a locale for strings transation
+func GetLocale(lang string) *gotext.Locale {
 	l := gotext.NewLocaleFSWithPath(lang, embeddedLocales, localesDir)
 	l.AddDomain(defaultDomain)
 	return l

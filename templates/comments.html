@@ -1,0 +1,12 @@
+<div id="parlante-comments">
+  <h2>{{.header}}</h2>
+
+  {{range .comments}}
+  <div class="parlante-comment">
+    <div class="parlante-comment-author">{{.Name}}</div>
+    <div class="parlante-comment-content">{{.Content}}</div>
+  </div>
+  {{else}}
+  <p>{{.noComments}}</p>
+  {{end}}
+</div>

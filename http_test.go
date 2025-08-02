@@ -22,6 +22,10 @@ func errorMarshal(v any) ([]byte, error) {
 	return nil, errors.New("bad")
 }
 
+func errorHtmlRender(s string, d map[string]any) ([]byte, error) {
+	return nil, errors.New("bad")
+}
+
 func TestCreateComment(t *testing.T) {
 
 	co := Config{}
@@ -183,7 +187,7 @@ func TestListComments(t *testing.T) {
 				uuid, _ := GenUUID4()
 				req, _ := http.NewRequest("GET", "/comment/"+uuid, nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/pos1")
+				req.Header.Set("Referer", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -193,7 +197,7 @@ func TestListComments(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bleble.net")
-				req.Header.Set("Referer", "https://bla.net/pos1")
+				req.Header.Set("Referer", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -202,7 +206,7 @@ func TestListComments(t *testing.T) {
 			"list comments without origin",
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
-				req.Header.Set("Referer", "https://bla.net/pos1")
+				req.Header.Set("Referer", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -212,7 +216,139 @@ func TestListComments(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/pos1")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+			}(),
+			200,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+}
+
+func TestListCommentsHTML(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.setupUrls()
+
+	c, _, _ := s.ClientStorage.CreateClient("test client")
+	d, _ := s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	comments := []Comment{
+		{
+			Name:    "Zé",
+			Content: "The comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Name:    "Tião",
+			Content: "The other comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Name:    "Jão",
+			Content: "The new comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Name:    "Zé",
+			Content: "The new new comment",
+			PageURL: "http://bla.net/post2",
+		},
+		{
+			Name:    "Jão",
+			Content: "Another comment",
+			PageURL: "http://bla.net/post2",
+		},
+	}
+
+	for _, co := range comments {
+		s.CommentStorage.CreateComment(c, d, co.Name, co.Content, co.PageURL)
+	}
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"list comments html with bad client",
+			func() *http.Request {
+				uuid, _ := GenUUID4()
+				req, _ := http.NewRequest("GET", "/comment/"+uuid+"/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+			}(),
+			403,
+		},
+		{
+			"list comments html with wrong origin",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Origin", "https://bleble.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+			}(),
+			403,
+		},
+		{
+			"list comments html without origin",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+			}(),
+			403,
+		},
+		{
+			"list comments html ok",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+			}(),
+			200,
+		},
+		{
+			"list comments html ok with language",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("Accepted-Language", "pt-BR")
+				return req
+			}(),
+			200,
+		},
+		{
+			"list comments html ok with missing language",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("Accepted-Language", "es-AR")
 				return req
 			}(),
 			200,
@@ -244,6 +380,7 @@ func TestComments_WithErrors(t *testing.T) {
 	s.mux = http.NewServeMux()
 	s.BodyReader = readFn
 	s.JsonMarshaler = errorMarshal
+	s.HtmlRenderer = errorHtmlRender
 	s.setupUrls()
 
 	c, _, _ := s.ClientStorage.CreateClient("test client")
@@ -307,17 +444,6 @@ func TestComments_WithErrors(t *testing.T) {
 			400,
 		},
 		{
-			"list comments with db error getting comments",
-			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
-				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", comment_storage.BadPage)
-				return req
-
-			}(),
-			500,
-		},
-		{
 			"create comment error reading body",
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte("bad body"))
@@ -331,16 +457,44 @@ func TestComments_WithErrors(t *testing.T) {
 			400,
 		},
 		{
+			"list comments with db error getting comments",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", comment_storage.BadPage)
+				return req
+
+			}(),
+			500,
+		},
+		{
 			"list comments error marshal json",
 			func() *http.Request {
-				payload := CreateCommentRequest{
-					Name:    "Zé",
-					Content: "A comment",
-				}
-				j, _ := json.Marshal(payload)
-				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
 
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, body)
+			}(),
+			500,
+		},
+		{
+			"list comments html with db error getting comments",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("Referer", comment_storage.BadPage)
+				return req
+
+			}(),
+			500,
+		},
+		{
+			"list comments html error render html",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("Referer", "https://bla.net/post1")
 				return req

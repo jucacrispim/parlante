@@ -32,6 +32,10 @@ msgstr "Clientes"
 msgid "Comments"
 msgstr "Comentários"
 
+#: http.go:159
+msgid "Comments (%d)"
+msgstr "Comentários (%d)"
+
 #: tui/messages.go:9
 msgid "Domains"
 msgstr "Domínios"
@@ -39,6 +43,10 @@ msgstr "Domínios"
 #: tui/messages.go:22
 msgid "New domain for {{.clientName}}"
 msgstr "Novo dominio para {{.clientName}}"
+
+#: http.go:161
+msgid "No comments."
+msgstr "Sem comentários"
 
 #: tui/messages.go:17
 msgid "Really want to remove client {{.name}}?"
