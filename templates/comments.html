@@ -13,3 +13,20 @@
   <p>{{.noComments}}</p>
   {{end}}
 </div>
+
+<div id="parlante-add-comment">
+  <label for="parlante-author">{{.nameLabel}}</label><br/>
+  <input type="text" id="parlante-author" required><br/><br/>
+
+  <label for="parlante-content">{{.commentLabel}}</label><br/>
+  <textarea id="parlante-content" required></textarea><br/><br/>
+  <button id="parlante-submit">{{.submitComment}}</button>
+</div>
+
+<div id="parlante-add-ok" style="display:none">
+  {{.commentAddOkMsg}}
+</div>
+
+<div id="parlante-add-error" style="display:none">
+  {{.commentAddErrorMsg}}
+</div>

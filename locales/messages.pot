@@ -23,11 +23,19 @@ msgstr ""
 msgid "Clients"
 msgstr ""
 
+#: http.go:191
+msgid "Comment"
+msgstr ""
+
+#: http.go:193
+msgid "Comment sent. Thank you!"
+msgstr ""
+
 #: tui/messages.go:11
 msgid "Comments"
 msgstr ""
 
-#: http.go:174
+#: http.go:186
 msgid "Comments (%d)"
 msgstr ""
 
@@ -35,11 +43,19 @@ msgstr ""
 msgid "Domains"
 msgstr ""
 
+#: http.go:194
+msgid "Error sending comment."
+msgstr ""
+
+#: http.go:190
+msgid "Name"
+msgstr ""
+
 #: tui/messages.go:22
 msgid "New domain for {{.clientName}}"
 msgstr ""
 
-#: http.go:176
+#: http.go:188
 msgid "No comments."
 msgstr ""
 
@@ -57,6 +73,10 @@ msgstr ""
 
 #: tui/messages.go:23
 msgid "Remove domain"
+msgstr ""
+
+#: http.go:192
+msgid "Send comment"
 msgstr ""
 
 #: tui/messages.go:27

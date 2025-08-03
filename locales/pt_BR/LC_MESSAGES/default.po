@@ -28,11 +28,19 @@ msgstr "Escolha um"
 msgid "Clients"
 msgstr "Clientes"
 
+#: http.go:191
+msgid "Comment"
+msgstr "Comentário"
+
+#: http.go:193
+msgid "Comment sent. Thank you!"
+msgstr "Comentário enviado. Obrigado!"
+
 #: tui/messages.go:11
 msgid "Comments"
 msgstr "Comentários"
 
-#: http.go:174
+#: http.go:186
 msgid "Comments (%d)"
 msgstr "Comentários (%d)"
 
@@ -40,11 +48,19 @@ msgstr "Comentários (%d)"
 msgid "Domains"
 msgstr "Domínios"
 
+#: http.go:194
+msgid "Error sending comment."
+msgstr "Erro enviando comentário"
+
+#: http.go:190
+msgid "Name"
+msgstr "Nome"
+
 #: tui/messages.go:22
 msgid "New domain for {{.clientName}}"
 msgstr "Novo dominio para {{.clientName}}"
 
-#: http.go:176
+#: http.go:188
 msgid "No comments."
 msgstr "Sem comentários"
 
@@ -63,6 +79,10 @@ msgstr "adcionar / remover clientes"
 #: tui/messages.go:23
 msgid "Remove domain"
 msgstr "Remover domínio"
+
+#: http.go:192
+msgid "Send comment"
+msgstr "Enviar comentário"
 
 #: tui/messages.go:27
 msgid "add"

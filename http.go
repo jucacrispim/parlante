@@ -2,6 +2,7 @@ package parlante
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +14,9 @@ type ctxKey string
 
 const ctxClientKey ctxKey = "client"
 const ctxDomainKey ctxKey = "domain"
+
+//go:embed js/parlante.js
+var parlanteJS []byte
 
 type bodyReader func(io.Reader) ([]byte, error)
 type jsonMarshaler func(v any) ([]byte, error)
@@ -76,6 +80,8 @@ type ParlanteServer struct {
 	Config              Config
 }
 
+// CreateComment creates a new comment for a given web page. The page
+// is the url in the `Referer` header.
 func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)
@@ -108,8 +114,9 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 	resp := CreateCommentResponse{Msg: "Ok"}
 	j, _ := json.Marshal(resp)
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.WriteHeader(http.StatusCreated)
 	w.Write(j)
 }
 
@@ -148,12 +155,12 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
 }
 
-func (s ParlanteServer) ListCommentsHTML(
-	w http.ResponseWriter, r *http.Request) {
+func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request) {
 
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
@@ -177,10 +184,16 @@ func (s ParlanteServer) ListCommentsHTML(
 	loc := GetLocale(lang)
 	tmplCtx := make(map[string]any)
 	total := len(comments)
+
 	header := loc.Get("Comments (%d)", total)
 	tmplCtx["header"] = header
 	tmplCtx["noComments"] = loc.Get("No comments.")
 	tmplCtx["comments"] = comments
+	tmplCtx["nameLabel"] = loc.Get("Name")
+	tmplCtx["commentLabel"] = loc.Get("Comment")
+	tmplCtx["submitComment"] = loc.Get("Send comment")
+	tmplCtx["commentAddOkMsg"] = loc.Get("Comment sent. Thank you!")
+	tmplCtx["commentAddErrorMsg"] = loc.Get("Error sending comment.")
 
 	b, err := s.HtmlRenderer("comments.html", lang, tz, tmplCtx)
 	if err != nil {
@@ -192,6 +205,11 @@ func (s ParlanteServer) ListCommentsHTML(
 	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 	w.WriteHeader(http.StatusOK)
 	w.Write(b)
+}
+
+func (s ParlanteServer) ServeParlanteJS(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/javascript")
+	w.Write(parlanteJS)
 }
 
 func (s ParlanteServer) Run() {
@@ -211,6 +229,8 @@ func (s ParlanteServer) Run() {
 	}
 }
 
+// checkClient checks if the client exists and the request origin
+// is a registered domain
 func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uuid := r.PathValue("uuid")
@@ -250,15 +270,30 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 	})
 }
 
+func handleCORS(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	h := "Content-Type, Authorization, Accepted-Language, X-Timezone"
+	w.Header().Set("Access-Control-Allow-Headers", h)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s ParlanteServer) setupUrls() {
 	s.mux.Handle("POST /comment/{uuid}",
 		s.checkClient(http.HandlerFunc(s.CreateComment)))
 
 	s.mux.Handle("GET /comment/{uuid}",
 		s.checkClient(http.HandlerFunc(s.ListComments)))
+	s.mux.Handle("OPTIONS /comment/{uuid}", http.HandlerFunc(handleCORS))
 
 	s.mux.Handle("GET /comment/{uuid}/html",
 		s.checkClient(http.HandlerFunc(s.ListCommentsHTML)))
+	s.mux.Handle("OPTIONS /comment/{uuid}/html", http.HandlerFunc(handleCORS))
+
+	s.mux.Handle("GET /parlante.js", http.HandlerFunc(s.ServeParlanteJS))
 
 }
 
