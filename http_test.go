@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -216,6 +218,15 @@ func TestListComments(t *testing.T) {
 			403,
 		},
 		{
+			"list comments options",
+			func() *http.Request {
+				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID, nil)
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+			}(),
+			204,
+		},
+		{
 			"list comments ok",
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
@@ -323,6 +334,15 @@ func TestListCommentsHTML(t *testing.T) {
 			403,
 		},
 		{
+			"list comments options",
+			func() *http.Request {
+				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Referer", "https://bla.net/post1")
+				return req
+			}(),
+			204,
+		},
+		{
 			"list comments html ok",
 			func() *http.Request {
 				req, _ := http.NewRequest(
@@ -370,6 +390,26 @@ func TestListCommentsHTML(t *testing.T) {
 
 		})
 	}
+}
+
+func TestParlanteJS(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.setupUrls()
+
+	req, _ := http.NewRequest("GET", "/parlante.js", nil)
+	w := httptest.NewRecorder()
+	s.mux.ServeHTTP(w, req)
+
+	if w.Code != 200 {
+		t.Fatalf("bad status for parlante.js %d", w.Code)
+	}
+
 }
 
 func TestComments_WithErrors(t *testing.T) {
@@ -485,8 +525,7 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"list comments html with db error getting comments",
 			func() *http.Request {
-				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("Referer", comment_storage.BadPage)
 				return req
@@ -497,8 +536,7 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"list comments html error render html",
 			func() *http.Request {
-				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("Referer", "https://bla.net/post1")
 				return req
@@ -555,5 +593,24 @@ func TestConfig(t *testing.T) {
 		t.Run(test.testName, func(t *testing.T) {
 			test.checkFn(test.config)
 		})
+	}
+}
+
+func TestRequestLogger(t *testing.T) {
+	var s string
+	fn := func(format string, v ...any) {
+		s = fmt.Sprintf(format, v)
+	}
+	req, _ := http.NewRequest("GET", "/parlante.js", nil)
+	w := httptest.NewRecorder()
+	logger := RequestLogger{loggerFn: fn}
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+	loggedHandler := logger.Log(http.HandlerFunc(handler))
+	loggedHandler.ServeHTTP(w, req)
+
+	if !strings.Contains(s, "GET /parlante.js") {
+		t.Fatalf("bad request log %s", s)
 	}
 }

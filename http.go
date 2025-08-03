@@ -20,11 +20,36 @@ var parlanteJS []byte
 
 type bodyReader func(io.Reader) ([]byte, error)
 type jsonMarshaler func(v any) ([]byte, error)
-type htmlRenderer func(
-	s string,
-	lang string,
-	timezone string,
-	d map[string]any) ([]byte, error)
+type htmlRenderer func(s string, lang string, tz string, d map[string]any) ([]byte, error)
+type loggerFn func(format string, v ...any)
+
+type RequestLogger struct {
+	loggerFn loggerFn
+}
+
+func (l RequestLogger) Log(h http.Handler) http.Handler {
+	handler := func(w http.ResponseWriter, req *http.Request) {
+		sw := &StatusedResponseWriter{w, http.StatusOK}
+		h.ServeHTTP(sw, req)
+		remote := l.getIp(req)
+		path := req.URL.Path
+		method := req.Method
+		ua := req.Header.Get("User-Agent")
+		l.loggerFn("%s %s %s %d %s\n", remote, method, path, sw.Status, ua)
+	}
+	return http.HandlerFunc(handler)
+}
+
+func (l RequestLogger) getIp(req *http.Request) string {
+	ip := req.Header.Get("X-Real-Ip")
+	if ip == "" {
+		ip = req.Header.Get("X-Forwarded-For")
+	}
+	if ip == "" {
+		ip = req.RemoteAddr
+	}
+	return ip
+}
 
 type StatusedResponseWriter struct {
 	http.ResponseWriter
@@ -120,6 +145,8 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
+// ListComments returns a json with the commments for a given page. The page
+// is the URL in the `Referer` header
 func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
@@ -160,6 +187,9 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
+// ListCommentsHTML returns a html snipet to be included in a web page.
+// User the `Accepted-Language` header for translations and the `X-Timezone`
+// header to set the comments display timezone.
 func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request) {
 
 	c := r.Context().Value(ctxClientKey).(Client)
@@ -207,16 +237,20 @@ func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request)
 	w.Write(b)
 }
 
+// ServeParlanteJS returns the parlante.js file that is used to render the
+// comments in a web page.
 func (s ParlanteServer) ServeParlanteJS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	w.Write(parlanteJS)
 }
 
+// Run starts the parlente sever
 func (s ParlanteServer) Run() {
 	// notest
 	addr := fmt.Sprintf("%s:%d", s.Config.Host, s.Config.Port)
 	var err error
-	loggedMux := logRequest(s.mux)
+	logger := RequestLogger{loggerFn: Infof}
+	loggedMux := logger.Log(s.mux)
 	if s.Config.UsesSSL() {
 		err = http.ListenAndServeTLS(addr, s.Config.CertFilePath,
 			s.Config.KeyFilePath, loggedMux)
@@ -270,17 +304,6 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 	})
 }
 
-func handleCORS(w http.ResponseWriter, r *http.Request) {
-	origin := r.Header.Get("Origin")
-	w.Header().Set("Access-Control-Allow-Origin", origin)
-
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	h := "Content-Type, Authorization, Accepted-Language, X-Timezone"
-	w.Header().Set("Access-Control-Allow-Headers", h)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.WriteHeader(http.StatusNoContent)
-}
-
 func (s ParlanteServer) setupUrls() {
 	s.mux.Handle("POST /comment/{uuid}",
 		s.checkClient(http.HandlerFunc(s.CreateComment)))
@@ -297,28 +320,15 @@ func (s ParlanteServer) setupUrls() {
 
 }
 
-func logRequest(h http.Handler) http.Handler {
-	handler := func(w http.ResponseWriter, req *http.Request) {
-		sw := &StatusedResponseWriter{w, http.StatusOK}
-		h.ServeHTTP(sw, req)
-		remote := getIp(req)
-		path := req.URL.Path
-		method := req.Method
-		ua := req.Header.Get("User-Agent")
-		Infof("%s %s %s %d %s\n", remote, method, path, sw.Status, ua)
-	}
-	return http.HandlerFunc(handler)
-}
+func handleCORS(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
-func getIp(req *http.Request) string {
-	ip := req.Header.Get("X-Real-Ip")
-	if ip == "" {
-		ip = req.Header.Get("X-Forwarded-For")
-	}
-	if ip == "" {
-		ip = req.RemoteAddr
-	}
-	return ip
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	h := "Content-Type, Authorization, Accepted-Language, X-Timezone"
+	w.Header().Set("Access-Control-Allow-Headers", h)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func getRequestLanguage(r *http.Request) string {
