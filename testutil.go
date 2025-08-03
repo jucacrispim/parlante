@@ -128,11 +128,14 @@ func NewClientDomainStorageInMemory() ClientDomainStorageInMemory {
 }
 
 type CommentStorageInMemory struct {
+	data           map[string][]Comment
 	clientComments map[int64][]Comment
 	domainComments map[int64][]Comment
 	pageComments   map[string][]Comment
 	BadCommenter   string
 	BadPage        string
+	listError      bool
+	removeError    bool
 }
 
 func (s CommentStorageInMemory) CreateComment(c Client, d ClientDomain,
@@ -142,6 +145,7 @@ func (s CommentStorageInMemory) CreateComment(c Client, d ClientDomain,
 	}
 
 	comment := NewComment(c, d, name, content, page_url)
+	s.data["all"] = append(s.data["all"], comment)
 	s.clientComments[c.ID] = append(s.clientComments[c.ID], comment)
 	s.domainComments[d.ID] = append(s.domainComments[d.ID], comment)
 	s.pageComments[comment.PageURL] = append(
@@ -153,7 +157,11 @@ func (s CommentStorageInMemory) CreateComment(c Client, d ClientDomain,
 func (s CommentStorageInMemory) ListComments(filter CommentsFilter) (
 	[]Comment, error) {
 
-	if *filter.PageURL == s.BadPage {
+	if s.listError {
+		return nil, errors.New("bad")
+	}
+
+	if filter.PageURL != nil && *filter.PageURL == s.BadPage {
 		return []Comment{}, errors.New("bad")
 	}
 
@@ -167,15 +175,38 @@ func (s CommentStorageInMemory) ListComments(filter CommentsFilter) (
 	if filter.PageURL != nil {
 		return s.pageComments[*filter.PageURL], nil
 	}
-	return nil, nil
+	return s.data["all"], nil
 }
 
 func (s CommentStorageInMemory) RemoveComment(comment Comment) error {
+	if s.removeError {
+		return errors.New("bad")
+	}
+	if len(s.data["all"]) < 1 {
+		return nil
+	}
+	s.data["all"] = append(s.data["all"][:0], s.data["all"][1:]...)
 	return nil
+}
+
+func (s CommentStorageInMemory) GetComment() Comment {
+	if len(s.data["all"]) > 0 {
+		return s.data["all"][0]
+	}
+	return Comment{}
+}
+
+func (s *CommentStorageInMemory) ForceListError(force bool) {
+	s.listError = force
+}
+
+func (s *CommentStorageInMemory) ForceRemoveError(force bool) {
+	s.removeError = force
 }
 
 func NewCommentStorageInMemory() CommentStorageInMemory {
 	c := CommentStorageInMemory{}
+	c.data = make(map[string][]Comment, 0)
 	c.clientComments = make(map[int64][]Comment)
 	c.domainComments = make(map[int64][]Comment)
 	c.pageComments = make(map[string][]Comment)

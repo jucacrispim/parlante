@@ -22,6 +22,8 @@ type CommentListNavigation struct {
 	MainScreen *mainScreen
 }
 
+// GetAddScreen returns the list screen because there is no add comment
+// screen and it is easier just return the list screen
 func (n CommentListNavigation) GetAddScreen() tea.Model {
 	s := newCommentListScreen(n.MainScreen)
 	return s
