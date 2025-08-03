@@ -21,7 +21,7 @@ PTBR_LOCALES_DIR=$(LOCALES_DIR)/pt_BR/LC_MESSAGES
 
 
 .PHONY: build # - Creates the binary under the build/ directory
-build:
+build: compile_translation
 	$(GOBUILD) $(OUTFLAG) $(PARLANTE_CMDFILE)
 	$(GOBUILD) $(TUI_OUTFLAG) $(PARLANTE_TUI_CMDFILE)
 
