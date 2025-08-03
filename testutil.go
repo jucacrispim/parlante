@@ -170,6 +170,10 @@ func (s CommentStorageInMemory) ListComments(filter CommentsFilter) (
 	return nil, nil
 }
 
+func (s CommentStorageInMemory) RemoveComment(comment Comment) error {
+	return nil
+}
+
 func NewCommentStorageInMemory() CommentStorageInMemory {
 	c := CommentStorageInMemory{}
 	c.clientComments = make(map[int64][]Comment)

@@ -123,6 +123,9 @@ func (m mainScreen) getNextAction() (tea.Model, tea.Cmd) {
 	case screenDomain:
 		c := newDomainListScreen(&m)
 		return c, c.Init()
+	case screenComment:
+		c := newCommentListScreen(&m)
+		return c, c.Init()
 	}
 	return m, nil // notest
 }

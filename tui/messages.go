@@ -23,6 +23,9 @@ var MESSAGE_NEW_DOMAIN_FOR = loc.Get("New domain for {{.clientName}}")
 var MESSAGE_REMOVE_DOMAIN = loc.Get("Remove domain")
 var MESSAGE_REMOVE_DOMAIN_CONFIRM = loc.Get(
 	"Really want to remove domain {{.domain}}?")
+var MESSAGE_REMOVE_COMMENT = loc.Get("Remove comment")
+var MESSAGE_REMOVE_COMMENT_CONFIRM = loc.Get(
+	"Really want to remove comment from {{.name}} at {{.url}}?")
 
 var MESSAGE_KEY_HELP_ADD = loc.Get("add")
 var MESSAGE_KEY_HELP_REMOVE = loc.Get("remove")

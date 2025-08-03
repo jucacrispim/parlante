@@ -168,6 +168,13 @@ func TestComments(t *testing.T) {
 		t.Fatalf("Bad len for p1comments %d", len(p1comments))
 	}
 
+	comms.RemoveComment(allcomments[0])
+
+	allcomments, err = comms.ListComments(CommentsFilter{})
+	if len(allcomments) != 3 {
+		t.Fatalf("Bad len for allcomments after remove %d", len(allcomments))
+	}
+
 }
 
 func setupTestDB() error {

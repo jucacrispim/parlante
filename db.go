@@ -91,8 +91,7 @@ func (s ClientDomainStorageSQLite) AddClientDomain(c Client, domain string) (
 	return d, nil
 }
 
-func (s ClientDomainStorageSQLite) RemoveClientDomain(c Client,
-	domain string) error {
+func (s ClientDomainStorageSQLite) RemoveClientDomain(c Client, domain string) error {
 	raw_query := "delete from client_domains where domain = ? "
 	raw_query += "and client_id = ?"
 	_, err := DB.Exec(raw_query, domain, c.ID)
@@ -216,6 +215,13 @@ func (s CommentStorageSQLite) ListComments(filter CommentsFilter) (
 		comments = append(comments, comment)
 	}
 	return comments, nil
+}
+
+func (s CommentStorageSQLite) RemoveComment(comment Comment) error {
+	raw_query := "delete from comments where id = ? "
+	_, err := DB.Exec(raw_query, comment.ID)
+	return err
+
 }
 
 func SetupDB(connURI string) error {

@@ -127,9 +127,15 @@ func NewComment(c Client, d ClientDomain, author string, content string,
 }
 
 type CommentStorage interface {
-	CreateComment(c Client, d ClientDomain,
-		name string, content string, page_url string) (Comment, error)
+	CreateComment(
+		c Client,
+		d ClientDomain,
+		name string,
+		content string,
+		page_url string) (Comment, error)
+
 	ListComments(filter CommentsFilter) ([]Comment, error)
+	RemoveComment(comment Comment) error
 }
 
 func GenUUID4() (string, error) {
