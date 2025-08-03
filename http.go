@@ -147,8 +147,8 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(j)
 }
 
@@ -157,6 +157,7 @@ func (s ParlanteServer) ListCommentsHTML(
 
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
+
 	page_url := r.Header.Get("Referer")
 	lang := getRequestLanguage(r)
 	tz := r.Header.Get("X-Timezone")
@@ -187,8 +188,9 @@ func (s ParlanteServer) ListCommentsHTML(
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.WriteHeader(http.StatusOK)
 	w.Write(b)
 }
 
@@ -196,11 +198,12 @@ func (s ParlanteServer) Run() {
 	// notest
 	addr := fmt.Sprintf("%s:%d", s.Config.Host, s.Config.Port)
 	var err error
+	loggedMux := logRequest(s.mux)
 	if s.Config.UsesSSL() {
 		err = http.ListenAndServeTLS(addr, s.Config.CertFilePath,
-			s.Config.KeyFilePath, s.mux)
+			s.Config.KeyFilePath, loggedMux)
 	} else {
-		err = http.ListenAndServe(addr, s.mux)
+		err = http.ListenAndServe(addr, loggedMux)
 
 	}
 	if err != nil {
@@ -249,13 +252,13 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 
 func (s ParlanteServer) setupUrls() {
 	s.mux.Handle("POST /comment/{uuid}",
-		logRequest(s.checkClient(http.HandlerFunc(s.CreateComment))))
+		s.checkClient(http.HandlerFunc(s.CreateComment)))
 
 	s.mux.Handle("GET /comment/{uuid}",
-		logRequest(s.checkClient(http.HandlerFunc(s.ListComments))))
+		s.checkClient(http.HandlerFunc(s.ListComments)))
 
 	s.mux.Handle("GET /comment/{uuid}/html",
-		logRequest(s.checkClient(http.HandlerFunc(s.ListCommentsHTML))))
+		s.checkClient(http.HandlerFunc(s.ListCommentsHTML)))
 
 }
 
