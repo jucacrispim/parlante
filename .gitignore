@@ -41,3 +41,4 @@ docs/source/apidoc/
 /coverage.html
 /coverage.out
 /test.sqlite
+*.mo
