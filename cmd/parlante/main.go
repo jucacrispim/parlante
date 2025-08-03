@@ -26,7 +26,14 @@ func main() {
 		DBPath:       *dbpath,
 		LogLevel:     *loglevel,
 	}
-	parlante.SetupDB(c.DBPath)
+	err := parlante.SetupDB(c.DBPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	err = parlante.MigrateDB(c.DBPath)
+	if err != nil {
+		panic(err.Error())
+	}
 	s := parlante.NewServer(c)
 	s.Run()
 }

@@ -2,15 +2,22 @@ package parlante
 
 import (
 	"database/sql"
+	"embed"
 	"reflect"
 	"strings"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
 
 const DEFAULT_DB_PATH = "/var/local/parlante.sqlite"
+
+//go:embed migrations/*.sql
+var embeddedMigrations embed.FS
 
 type ClientStorageSQLite struct {
 }
@@ -149,8 +156,12 @@ join
 type CommentStorageSQLite struct {
 }
 
-func (s CommentStorageSQLite) CreateComment(c Client, d ClientDomain,
-	name string, content string, page_url string) (Comment, error) {
+func (s CommentStorageSQLite) CreateComment(
+	c Client, d ClientDomain,
+	name string,
+	content string,
+	page_url string) (Comment, error) {
+
 	raw_query := `
 insert into comments (client_id, domain_id, name, content, page_url, timestamp)
 values (?, ?, ?, ?, ?, ?)`
@@ -207,12 +218,31 @@ func (s CommentStorageSQLite) ListComments(filter CommentsFilter) (
 	return comments, nil
 }
 
-func SetupDB(connUri string) error {
-	db, err := sql.Open("sqlite", connUri)
+func SetupDB(connURI string) error {
+	db, err := sql.Open("sqlite", connURI)
 	if err != nil {
 		return err
 	}
 	DB = db
+	return nil
+}
+
+func MigrateDB(dbfile string) error {
+
+	connURI := "sqlite3://" + dbfile
+	d, err := iofs.New(embeddedMigrations, "migrations")
+	if err != nil {
+		return err
+	}
+
+	migr, err := migrate.NewWithSourceInstance("iofs", d, connURI)
+	if err != nil {
+		return err
+	}
+	err = migr.Up()
+	if err != nil && err != migrate.ErrNoChange {
+		return err
+	}
 	return nil
 }
 

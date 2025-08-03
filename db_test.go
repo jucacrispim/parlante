@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -173,10 +172,7 @@ func TestComments(t *testing.T) {
 
 func setupTestDB() error {
 	SetupDB(DBFILE)
-	m, err := migrate.New("file://"+MIGRATIONS_DIR, "sqlite3://"+DBFILE)
-	if err != nil {
-		return err
-	}
-	m.Up()
-	return nil
+	err := MigrateDB(DBFILE)
+
+	return err
 }

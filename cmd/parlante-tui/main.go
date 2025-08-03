@@ -16,7 +16,14 @@ func main() {
 	dbpath := flag.String("dbpath", parlante.DEFAULT_DB_PATH, "path for database file")
 	flag.CommandLine.Parse(os.Args[1:])
 
-	parlante.SetupDB(*dbpath)
+	err := parlante.SetupDB(*dbpath)
+	if err != nil {
+		panic(err.Error())
+	}
+	err = parlante.MigrateDB(*dbpath)
+	if err != nil {
+		panic(err.Error())
+	}
 	cs := parlante.ClientStorageSQLite{}
 	ds := parlante.ClientDomainStorageSQLite{}
 	cos := parlante.CommentStorageSQLite{}
