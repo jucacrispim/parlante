@@ -285,6 +285,7 @@ func (s ParlanteServer) Run() {
 func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uuid := r.PathValue("uuid")
+		uuid = strings.ToLower(uuid)
 		c, err := s.ClientStorage.GetClientByUUID(uuid)
 		if err != nil {
 			Errorf(err.Error())

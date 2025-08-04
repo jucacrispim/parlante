@@ -22,6 +22,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -165,6 +166,7 @@ func GenUUID4() (string, error) {
 	b[6] = (b[6] | 0x40) & 0x4F
 	b[8] = (b[8] | 0x80) & 0xBF
 	uuid := fmt.Sprintf("%X-%X-%X-%X-%X", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	uuid = strings.ToLower(uuid)
 	return uuid, nil
 }
 
