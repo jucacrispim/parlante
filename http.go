@@ -234,6 +234,7 @@ func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request)
 
 	header := loc.Get("Comments (%d)", total)
 	tmplCtx["header"] = header
+	tmplCtx["addCommentHeader"] = loc.Get("Leave your comment!")
 	tmplCtx["noComments"] = loc.Get("No comments.")
 	tmplCtx["comments"] = comments
 	tmplCtx["nameLabel"] = loc.Get("Name")

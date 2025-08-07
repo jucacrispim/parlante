@@ -1,5 +1,5 @@
 <div id="parlante-comments">
-  <h2>{{.header}}</h2>
+  <h3>{{.header}}</h3>
 
   {{range .comments}}
   <div class="parlante-comment">
@@ -15,10 +15,11 @@
 </div>
 
 <div id="parlante-add-comment">
-  <label for="parlante-author">{{.nameLabel}}</label><br/>
+  <h3>{{.addCommentHeader}}</h3>
+  <label for="parlante-author">{{.nameLabel}}</label>
   <input type="text" id="parlante-author" required><br/><br/>
 
-  <label for="parlante-content">{{.commentLabel}}</label><br/>
+  <label for="parlante-content">{{.commentLabel}}</label>
   <textarea id="parlante-content" required></textarea><br/><br/>
   <button id="parlante-submit">{{.submitComment}}</button>
 </div>
