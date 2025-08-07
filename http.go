@@ -123,7 +123,7 @@ type ParlanteServer struct {
 }
 
 // CreateComment creates a new comment for a given web page. The page
-// is the url in the `Referer` header.
+// is the url in the `X-PageURL` header.
 func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)
@@ -146,7 +146,7 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
 
-	page_url := r.Header.Get("Referer")
+	page_url := r.Header.Get("X-PageURL")
 
 	_, err = s.CommentStorage.CreateComment(
 		c, cd, body.Name, body.Content, page_url)
@@ -163,11 +163,11 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListComments returns a json with the commments for a given page. The page
-// is the URL in the `Referer` header
+// is the URL in the `X-PageURL` header
 func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
-	page_url := r.Header.Get("Referer")
+	page_url := r.Header.Get("X-PageURL")
 	filter := CommentsFilter{
 		ClientID: &c.ID,
 		DomainID: &cd.ID,
@@ -212,7 +212,7 @@ func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request)
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
 
-	page_url := r.Header.Get("Referer")
+	page_url := r.Header.Get("X-PageURL")
 	lang := getRequestLanguage(r)
 	tz := r.Header.Get("X-Timezone")
 
@@ -343,7 +343,7 @@ func handleCORS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	h := "Content-Type, Authorization, Accepted-Language, X-Timezone"
+	h := "Content-Type, Authorization, Accepted-Language, X-Timezone, X-PageURL"
 	w.Header().Set("Access-Control-Allow-Headers", h)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.WriteHeader(http.StatusNoContent)

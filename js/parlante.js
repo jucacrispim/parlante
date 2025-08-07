@@ -7,13 +7,13 @@ async function parlanteLoadComments(parlante_url, client_uuid, container_id) {
   let headers = new Headers();
   headers.append("Accepted-Language", lang)
   headers.append("X-Timezone", tz)
+  headers.append("X-PageURL", window.location.href)
 
   let opts = {
     method: "GET",
     headers: headers,
     mode: "cors",
     cache: "no-cache",
-    referrerPolicy: "unsafe-url",
   }
 
   let response = null
@@ -40,11 +40,14 @@ async function parlanteSubmitComment(parlante_url, client_uuid) {
     name: authorEl.value,
     content: contentEl.value,
   })
+  let headers = new Headers();
+  headers.append("X-PageURL", window.location.href)
 
   let opts = {
     method: "POST",
     mode: "cors",
     cache: "no-cache",
+    headers: headers,
     referrerPolicy: "unsafe-url",
     body: body,
   }

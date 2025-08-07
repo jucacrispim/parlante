@@ -80,7 +80,7 @@ func TestCreateComment(t *testing.T) {
 				body := bytes.NewBuffer(j)
 				req, _ := http.NewRequest("POST", "/comment/"+uuid, body)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
 			}(),
@@ -96,7 +96,7 @@ func TestCreateComment(t *testing.T) {
 				body := bytes.NewBuffer(j)
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
 				req.Header.Set("Origin", "https://bleble.net")
-				req.Header.Set("Referer", "https://bleble.net/post")
+				req.Header.Set("X-PageURL", "https://bleble.net/post")
 				return req
 
 			}(),
@@ -106,7 +106,7 @@ func TestCreateComment(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
 			}(),
@@ -117,7 +117,7 @@ func TestCreateComment(t *testing.T) {
 				body := bytes.NewBuffer([]byte(""))
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
 			}(),
@@ -133,7 +133,7 @@ func TestCreateComment(t *testing.T) {
 				body := bytes.NewBuffer(j)
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
 			}(),
@@ -210,7 +210,7 @@ func TestListComments(t *testing.T) {
 				uuid, _ := GenUUID4()
 				req, _ := http.NewRequest("GET", "/comment/"+uuid, nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -220,7 +220,7 @@ func TestListComments(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bleble.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -229,7 +229,7 @@ func TestListComments(t *testing.T) {
 			"list comments without origin",
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -238,7 +238,7 @@ func TestListComments(t *testing.T) {
 			"list comments options",
 			func() *http.Request {
 				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID, nil)
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			204,
@@ -248,7 +248,7 @@ func TestListComments(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			200,
@@ -324,7 +324,7 @@ func TestListCommentsHTML(t *testing.T) {
 				uuid, _ := GenUUID4()
 				req, _ := http.NewRequest("GET", "/comment/"+uuid+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -335,7 +335,7 @@ func TestListCommentsHTML(t *testing.T) {
 				req, _ := http.NewRequest(
 					"GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bleble.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -345,7 +345,7 @@ func TestListCommentsHTML(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest(
 					"GET", "/comment/"+c.UUID+"/html", nil)
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			403,
@@ -354,7 +354,7 @@ func TestListCommentsHTML(t *testing.T) {
 			"list comments options",
 			func() *http.Request {
 				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID+"/html", nil)
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			204,
@@ -365,7 +365,7 @@ func TestListCommentsHTML(t *testing.T) {
 				req, _ := http.NewRequest(
 					"GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
 			200,
@@ -376,7 +376,7 @@ func TestListCommentsHTML(t *testing.T) {
 				req, _ := http.NewRequest(
 					"GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				req.Header.Set("Accepted-Language", "pt-BR")
 				return req
 			}(),
@@ -388,7 +388,7 @@ func TestListCommentsHTML(t *testing.T) {
 				req, _ := http.NewRequest(
 					"GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				req.Header.Set("Accepted-Language", "es-AR")
 				return req
 			}(),
@@ -464,7 +464,7 @@ func TestComments_WithErrors(t *testing.T) {
 				uuid := client_storage.BadClientUUID
 				req, _ := http.NewRequest("POST", "/comment/"+uuid, body)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
 			}(),
@@ -481,7 +481,7 @@ func TestComments_WithErrors(t *testing.T) {
 				body := bytes.NewBuffer(j)
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
 				req.Header.Set("Origin", "https://bad.net")
-				req.Header.Set("Referer", "https://bla.net/post")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
 			}(),
@@ -498,7 +498,7 @@ func TestComments_WithErrors(t *testing.T) {
 				body := bytes.NewBuffer(j)
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
 			}(),
@@ -511,7 +511,7 @@ func TestComments_WithErrors(t *testing.T) {
 
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
 			}(),
@@ -522,7 +522,7 @@ func TestComments_WithErrors(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", comment_storage.BadPage)
+				req.Header.Set("X-PageURL", comment_storage.BadPage)
 				return req
 
 			}(),
@@ -533,7 +533,7 @@ func TestComments_WithErrors(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
 			}(),
@@ -544,7 +544,7 @@ func TestComments_WithErrors(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", comment_storage.BadPage)
+				req.Header.Set("X-PageURL", comment_storage.BadPage)
 				return req
 
 			}(),
@@ -555,7 +555,7 @@ func TestComments_WithErrors(t *testing.T) {
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
-				req.Header.Set("Referer", "https://bla.net/post1")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
 			}(),
