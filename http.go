@@ -21,6 +21,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -96,6 +97,30 @@ type CommentResponse struct {
 type ListCommentsResponse struct {
 	Total    int               `json:"total"`
 	Comments []CommentResponse `json:"comments"`
+}
+
+type CountCommentsRequest struct {
+	PageURLs []string `json:"page_urls"`
+}
+
+type CountCommentsHTMLRequest struct {
+	PageURLs       []string `json:"page_urls"`
+	CommentsAnchor string   `json:"comments_anchor"`
+}
+
+type CountCommentsResponse struct {
+	Total        int            `json:"total"`
+	CommentCount []CommentCount `json:"comment_count"`
+}
+
+type CountCommentsHTMLItem struct {
+	PageURL string `json:"page_url"`
+	Content string `json:"content"`
+}
+
+type CountCommentsHTMLResponse struct {
+	Total int                     `json:"total"`
+	Items []CountCommentsHTMLItem `json:"items"`
 }
 
 type Config struct {
@@ -255,6 +280,113 @@ func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request)
 	w.Write(b)
 }
 
+// CountComments returns a json with the comments count for each url passed
+// in the request
+func (s ParlanteServer) CountComments(w http.ResponseWriter, r *http.Request) {
+	if r.Body == nil {
+		http.Error(w, "Missing body", http.StatusBadRequest)
+		return
+	}
+	rawbody, err := s.BodyReader(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var body CountCommentsRequest
+	err = json.Unmarshal(rawbody, &body)
+	if err != nil {
+		http.Error(w, "Malformed json", http.StatusBadRequest)
+		return
+	}
+
+	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
+	valid := getValidURLsForDomain(cd, body.PageURLs)
+
+	count, err := s.CommentStorage.CountComments(valid...)
+	resp := CountCommentsResponse{
+		Total:        len(count),
+		CommentCount: count,
+	}
+	j, err := s.JsonMarshaler(resp)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+
+}
+
+// CountCommentsHTML returns a json with a html snipet as the value for
+// the url count.
+func (s ParlanteServer) CountCommentsHTML(w http.ResponseWriter, r *http.Request) {
+	if r.Body == nil {
+		http.Error(w, "Missing body", http.StatusBadRequest)
+		return
+	}
+	rawbody, err := s.BodyReader(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var body CountCommentsHTMLRequest
+	err = json.Unmarshal(rawbody, &body)
+	if err != nil {
+		http.Error(w, "Malformed json", http.StatusBadRequest)
+		return
+	}
+
+	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
+	valid := getValidURLsForDomain(cd, body.PageURLs)
+	count, err := s.CommentStorage.CountComments(valid...)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	lang := getRequestLanguage(r)
+	tz := ""
+	loc := GetLocale(lang)
+
+	count_items := make([]CountCommentsHTMLItem, 0)
+	resp := CountCommentsHTMLResponse{}
+	for _, item := range count {
+		tmplCtx := make(map[string]any)
+		header := loc.Get("Comments (%d)", item.Count)
+		tmplCtx["header"] = header
+		tmplCtx["commentsURL"] = item.PageURL + "#" + body.CommentsAnchor
+		tmplCtx["addCommentHeader"] = loc.Get("Leave your comment!")
+		content, err := s.HtmlRenderer("comments_count.html", lang, tz, tmplCtx)
+		if err != nil {
+			Errorf(err.Error())
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		count_items = append(count_items, CountCommentsHTMLItem{
+			PageURL: item.PageURL, Content: string(content)})
+	}
+	resp.Items = count_items
+	resp.Total = len(count_items)
+
+	j, err := s.JsonMarshaler(resp)
+	if err != nil {
+		// notest
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
 // ServeParlanteJS returns the parlante.js file that is used to render the
 // comments in a web page.
 func (s ParlanteServer) ServeParlanteJS(w http.ResponseWriter, r *http.Request) {
@@ -299,14 +431,11 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 			return
 		}
 		origin := r.Header.Get("Origin")
-		parts := strings.Split(origin, "://")
-		if len(parts) != 2 {
+		domain, err := getDomainFromURL(origin)
+		if err != nil {
 			http.Error(w, "Forbibben", http.StatusForbidden)
 			return
 		}
-		noscheme := parts[1]
-		domain_port := strings.Split(noscheme, "/")[0]
-		domain := strings.Split(domain_port, ":")[0]
 
 		cd, err := s.ClientDomainStorage.GetClientDomain(c, domain)
 		if err != nil {
@@ -323,6 +452,29 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 	})
 }
 
+func getDomainFromURL(url string) (string, error) {
+	parts := strings.Split(url, "://")
+	if len(parts) != 2 {
+		return "", errors.New("bad url")
+	}
+	noscheme := parts[1]
+	domain_port := strings.Split(noscheme, "/")[0]
+	domain := strings.Split(domain_port, ":")[0]
+	return domain, nil
+}
+
+func getValidURLsForDomain(d ClientDomain, urls []string) []string {
+	valid := make([]string, 0)
+
+	for _, url := range urls {
+		domain, err := getDomainFromURL(url)
+		if domain == d.Domain || err != nil {
+			valid = append(valid, url)
+		}
+	}
+	return valid
+}
+
 func (s ParlanteServer) setupUrls() {
 	s.mux.Handle("POST /comment/{uuid}",
 		s.checkClient(http.HandlerFunc(s.CreateComment)))
@@ -336,6 +488,16 @@ func (s ParlanteServer) setupUrls() {
 	s.mux.Handle("OPTIONS /comment/{uuid}/html", http.HandlerFunc(handleCORS))
 
 	s.mux.Handle("GET /parlante.js", http.HandlerFunc(s.ServeParlanteJS))
+
+	s.mux.Handle("POST /comment/{uuid}/count",
+		s.checkClient(http.HandlerFunc(s.CountComments)))
+	s.mux.Handle("OPTIONS /comment/{uuid}/count",
+		s.checkClient(http.HandlerFunc(handleCORS)))
+
+	s.mux.Handle("POST /comment/{uuid}/count/html",
+		s.checkClient(http.HandlerFunc(s.CountCommentsHTML)))
+	s.mux.Handle("OPTIONS /comment/{uuid}/count/html",
+		s.checkClient(http.HandlerFunc(handleCORS)))
 
 }
 

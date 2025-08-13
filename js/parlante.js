@@ -7,7 +7,7 @@ async function parlanteLoadComments(parlante_url, client_uuid, container_id) {
   let headers = new Headers();
   headers.append("Accepted-Language", lang)
   headers.append("X-Timezone", tz)
-  headers.append("X-PageURL", window.location.href)
+  headers.append("X-PageURL", window.location.href.split('#')[0])
 
   let opts = {
     method: "GET",
@@ -72,4 +72,42 @@ async function parlanteSubmitComment(parlante_url, client_uuid) {
   }
   container.style.display = 'none'
   container_ok.style.display = 'block'
+}
+
+async function parlanteCountComments(parlante_url, client_uuid, container_cls, comments_anchor) {
+  let url = parlante_url + '/comment/' + client_uuid + '/count/html';
+
+  let lang = navigator.language;
+  let headers = new Headers();
+  headers.append("Accepted-Language", lang)
+
+  let urls = []
+  document.querySelectorAll('.' + container_cls).forEach(el => {
+    urls.push(el.dataset.url)
+  })
+
+  let body = JSON.stringify({
+    page_urls: urls,
+    comments_anchor: comments_anchor,
+  })
+
+  let opts = {
+    method: "POST",
+    mode: "cors",
+    cache: "no-cache",
+    headers: headers,
+    body: body,
+  }
+
+  try {
+    response = await fetch(url, opts)
+  } catch(e) {
+    console.log('error counting comments')
+    return
+  }
+  comments_count = await response.json()
+  for (item of comments_count.items) {
+    let el = document.querySelector('[data-url="' + item.page_url + '"]');
+    el.innerHTML = item.content
+  }
 }

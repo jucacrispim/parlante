@@ -194,6 +194,44 @@ func TestComments(t *testing.T) {
 
 }
 
+func TestCommentCount_NoURLs(t *testing.T) {
+	comms := CommentStorageSQLite{}
+	_, err := comms.CountComments()
+	if err == nil {
+		t.Fatalf("No error for no urls on comment count")
+	}
+}
+
+func TestCommentCount(t *testing.T) {
+	err := setupTestDB()
+	defer os.Remove(DBFILE)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cs := ClientStorageSQLite{}
+	cds := ClientDomainStorageSQLite{}
+	comms := CommentStorageSQLite{}
+	c, _, _ := cs.CreateClient("the test client")
+	d, _ := cds.AddClientDomain(c, "bla.net")
+
+	urls := []string{"http://bla.net/count-1", "http://bla.net/count-2", "http://bla.net/count-3"}
+	for _, url := range urls[:2] {
+		_, err := comms.CreateComment(c, d, "zé", "blabla", url)
+		if err != nil {
+			t.Fatalf("error creating comment %s", err.Error())
+		}
+	}
+	count, err := comms.CountComments(urls...)
+	if err != nil {
+		t.Fatalf("error comment count! %s", err.Error())
+	}
+
+	if len(count) != 3 {
+		t.Fatalf("bad len for comment count %d", len(count))
+	}
+}
+
 func setupTestDB() error {
 	SetupDB(DBFILE)
 	err := MigrateDB(DBFILE)

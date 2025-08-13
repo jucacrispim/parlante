@@ -198,6 +198,20 @@ func (s CommentStorageInMemory) ListComments(filter CommentsFilter) (
 	return s.data["all"], nil
 }
 
+func (s CommentStorageInMemory) CountComments(urls ...string) ([]CommentCount, error) {
+	r := make([]CommentCount, 0)
+	for _, url := range urls {
+		if url == s.BadPage {
+			return nil, errors.New("Bad")
+		}
+		c := CommentCount{
+			Count:   int64(len(s.data[url])),
+			PageURL: url}
+		r = append(r, c)
+	}
+	return r, nil
+}
+
 func (s CommentStorageInMemory) RemoveComment(comment Comment) error {
 	if s.removeError {
 		return errors.New("bad")

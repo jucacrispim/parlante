@@ -130,6 +130,11 @@ type Comment struct {
 	Timestamp int64
 }
 
+type CommentCount struct {
+	PageURL string `json:"page_url"`
+	Count   int64  `json:"count"`
+}
+
 func NewComment(c Client, d ClientDomain, author string, content string,
 	page_url string) (Comment, error) {
 	if author == "" || content == "" || page_url == "" {
@@ -158,6 +163,7 @@ type CommentStorage interface {
 
 	ListComments(filter CommentsFilter) ([]Comment, error)
 	RemoveComment(comment Comment) error
+	CountComments(urls ...string) ([]CommentCount, error)
 }
 
 func GenUUID4() (string, error) {

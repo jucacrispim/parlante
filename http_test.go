@@ -409,6 +409,291 @@ func TestListCommentsHTML(t *testing.T) {
 	}
 }
 
+func TestCountComments(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.setupUrls()
+
+	c, _, _ := s.ClientStorage.CreateClient("test client")
+	d, _ := s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	comments := []Comment{
+		{
+			Author:  "Zé",
+			Content: "The comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Tião",
+			Content: "The other comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Jão",
+			Content: "The new comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Zé",
+			Content: "The new new comment",
+			PageURL: "http://bla.net/post2",
+		},
+		{
+			Author:  "Jão",
+			Content: "Another comment",
+			PageURL: "http://bla.net/post2",
+		},
+	}
+
+	for _, co := range comments {
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
+	}
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"count comments with bad client",
+			func() *http.Request {
+				uuid, _ := GenUUID4()
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+uuid+"/count", body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments with wrong origin",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("Origin", "https://bleble.net")
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments without origin",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments malformed payload",
+			func() *http.Request {
+				body := bytes.NewBuffer([]byte("bad"))
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			400,
+		},
+		{
+			"count comments options",
+			func() *http.Request {
+				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID+"/count", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			204,
+		},
+
+		{
+			"count comments ok",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			200,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+}
+
+func TestCountCommentsHTML(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.setupUrls()
+
+	c, _, _ := s.ClientStorage.CreateClient("test client")
+	d, _ := s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	comments := []Comment{
+		{
+			Author:  "Zé",
+			Content: "The comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Tião",
+			Content: "The other comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Jão",
+			Content: "The new comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Zé",
+			Content: "The new new comment",
+			PageURL: "http://bla.net/post2",
+		},
+		{
+			Author:  "Jão",
+			Content: "Another comment",
+			PageURL: "http://bla.net/post2",
+		},
+	}
+
+	for _, co := range comments {
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
+	}
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"count comments html with bad client",
+			func() *http.Request {
+				uuid, _ := GenUUID4()
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+uuid+"/count/html", body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments html with wrong origin",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req.Header.Set("Origin", "https://bleble.net")
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments html without origin",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments html malformed payload",
+			func() *http.Request {
+				body := bytes.NewBuffer([]byte("bad"))
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+			}(),
+			400,
+		},
+
+		{
+			"count comments html options",
+			func() *http.Request {
+				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID+"/count/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			204,
+		},
+
+		{
+			"count comments html ok",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			200,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+}
+
 func TestParlanteJS(t *testing.T) {
 	co := Config{}
 	s := NewServer(co)
@@ -554,6 +839,105 @@ func TestComments_WithErrors(t *testing.T) {
 			"list comments html error render html",
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+
+			}(),
+			500,
+		},
+		{
+			"count comments missing body",
+			func() *http.Request {
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+
+			}(),
+			400,
+		},
+		{
+			"count comments error reading body",
+			func() *http.Request {
+				body := bytes.NewBuffer([]byte("bad body"))
+
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+
+			}(),
+			400,
+		},
+		{
+			"count comments error getting comments from db",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2",
+						comment_storage.BadPage},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+
+			}(),
+			500,
+		},
+		{
+			"count comments html missing body",
+			func() *http.Request {
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+
+			}(),
+			400,
+		},
+		{
+			"count comments hmtl error reading body",
+			func() *http.Request {
+				body := bytes.NewBuffer([]byte("bad body"))
+
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+
+			}(),
+			400,
+		},
+		{
+			"count comments html error getting comments from db",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2",
+						comment_storage.BadPage},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+
+			}(),
+			500,
+		},
+
+		{
+			"count comments html error rendering template",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req

@@ -20,6 +20,8 @@ package parlante
 import (
 	"database/sql"
 	"embed"
+	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -236,6 +238,47 @@ func (s CommentStorageSQLite) ListComments(filter CommentsFilter) (
 		comments = append(comments, comment)
 	}
 	return comments, nil
+}
+
+func (s CommentStorageSQLite) CountComments(urls ...string) ([]CommentCount, error) {
+	if len(urls) == 0 {
+		return nil, errors.New("At least one url is required")
+	}
+	in := make([]string, 0)
+	anyurls := make([]any, 0)
+	for _, url := range urls {
+		in = append(in, "(?)")
+		anyurls = append(anyurls, url)
+	}
+	instr := strings.Join(in, ",")
+	raw_query := fmt.Sprintf(`
+with urls(url) as (
+    values %s
+)
+select
+    u.url,
+    coalesce(count(c.id), 0) as total_comments
+from urls u
+left join comments c
+       on c.page_url = u.url
+group by u.url
+order by u.url;
+`,
+		instr)
+	rows, err := DB.Query(raw_query, anyurls...)
+	if err != nil {
+		return nil, err
+	}
+	count := make([]CommentCount, 0)
+	for rows.Next() {
+		comment_count := CommentCount{}
+		err := rows.Scan(&comment_count.PageURL, &comment_count.Count)
+		if err != nil {
+			return nil, err
+		}
+		count = append(count, comment_count)
+	}
+	return count, nil
 }
 
 func (s CommentStorageSQLite) RemoveComment(comment Comment) error {
