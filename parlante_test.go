@@ -43,5 +43,35 @@ func TestClientUpdateKey(t *testing.T) {
 	if plain_key == new_key {
 		t.Fatalf("key not updated %s %s", plain_key, new_key)
 	}
+}
 
+func TestNewComment(t *testing.T) {
+	c, _, _ := NewClient("the test client")
+	d := NewClientDomain(c, "bla.net")
+
+	var tests = []struct {
+		testName string
+		author   string
+		content  string
+		page_url string
+		hasError bool
+	}{
+		{"new without author", "", "blabla", "https:/bla.net", true},
+		{"new without content", "zé", "", "https:/bla.net", true},
+		{"new without page_url", "zé", "blabla", "", true},
+		{"new ok", "zé", "blabla", "https:/bla.net", false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.testName, func(t *testing.T) {
+			_, err := NewComment(c, d, test.author, test.content, test.page_url)
+			if err == nil && test.hasError {
+				t.Fatalf("No error")
+			}
+
+			if err != nil && !test.hasError {
+				t.Fatalf("Error!")
+			}
+		})
+	}
 }

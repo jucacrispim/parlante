@@ -21,6 +21,7 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -130,7 +131,10 @@ type Comment struct {
 }
 
 func NewComment(c Client, d ClientDomain, author string, content string,
-	page_url string) Comment {
+	page_url string) (Comment, error) {
+	if author == "" || content == "" || page_url == "" {
+		return Comment{}, errors.New("Missing required field")
+	}
 	comment := Comment{
 		ClientID:  c.ID,
 		DomainID:  d.ID,
@@ -141,7 +145,7 @@ func NewComment(c Client, d ClientDomain, author string, content string,
 		Domain:    &d,
 		Timestamp: time.Now().Unix(),
 	}
-	return comment
+	return comment, nil
 }
 
 type CommentStorage interface {

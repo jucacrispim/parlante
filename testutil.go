@@ -161,7 +161,10 @@ func (s CommentStorageInMemory) CreateComment(c Client, d ClientDomain,
 		return Comment{}, errors.New("bad")
 	}
 
-	comment := NewComment(c, d, name, content, page_url)
+	comment, err := NewComment(c, d, name, content, page_url)
+	if err != nil {
+		return Comment{}, err
+	}
 	s.data["all"] = append(s.data["all"], comment)
 	s.clientComments[c.ID] = append(s.clientComments[c.ID], comment)
 	s.domainComments[d.ID] = append(s.domainComments[d.ID], comment)

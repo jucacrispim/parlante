@@ -182,7 +182,10 @@ func (s CommentStorageSQLite) CreateComment(
 insert into comments (client_id, domain_id, name, content, page_url, timestamp)
 values (?, ?, ?, ?, ?, ?)`
 
-	comment := NewComment(c, d, name, content, page_url)
+	comment, err := NewComment(c, d, name, content, page_url)
+	if err != nil {
+		return Comment{}, err
+	}
 	row, err := DB.Exec(raw_query, c.ID, d.ID, comment.Author,
 		comment.Content, comment.PageURL, comment.Timestamp)
 	if err != nil {
@@ -215,6 +218,7 @@ func (s CommentStorageSQLite) ListComments(filter CommentsFilter) (
 	}
 
 	raw_query := "select * from comments where " + strings.Join(where, " and ")
+	raw_query += " order by timestamp asc"
 	rows, err := DB.Query(raw_query, args...)
 	if err != nil {
 		return nil, err
