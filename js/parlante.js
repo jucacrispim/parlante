@@ -36,9 +36,14 @@ async function parlanteSubmitComment(parlante_url, client_uuid) {
   let url = parlante_url + '/comment/' + client_uuid;
   let authorEl = document.getElementById("parlante-author")
   let contentEl = document.getElementById("parlante-content")
+  let author = authorEl.value;
+  let content = contentEl.value
+  if (!author || !content) {
+    return
+  }
   let body = JSON.stringify({
-    name: authorEl.value,
-    content: contentEl.value,
+    name: author,
+    content: content,
   })
   let headers = new Headers();
   headers.append("X-PageURL", window.location.href)
