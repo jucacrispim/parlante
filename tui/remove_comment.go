@@ -1,4 +1,4 @@
-// Copyright 2025 Juca Crispim <juca@poraodojuca.net>
+// Copyright 2025 Juca Crispim <juca@poraodojuca.dev>
 
 // This file is part of parlante.
 
