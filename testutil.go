@@ -248,3 +248,20 @@ func NewCommentStorageInMemory() CommentStorageInMemory {
 	c.BadPage = "http://bla.net/bad"
 	return c
 }
+
+// test mail sender
+
+type TestMailSender struct {
+	forceError bool
+}
+
+func (s TestMailSender) SendEmail(msg EmailMessage) error {
+	if s.forceError {
+		return errors.New("bad send email")
+	}
+	return nil
+}
+
+func (s *TestMailSender) ForceError(force bool) {
+	s.forceError = force
+}

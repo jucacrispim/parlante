@@ -111,3 +111,74 @@ async function parlanteCountComments(parlante_url, client_uuid, container_cls, c
     el.innerHTML = item.content
   }
 }
+
+async function parlanteGetPingMeForm(parlante_url, client_uuid, container_id) {
+  let url = parlante_url + '/pingme/' + client_uuid;
+  let container = document.getElementById(container_id);
+  let lang = navigator.language;
+
+  let headers = new Headers();
+  headers.append("Accepted-Language", lang)
+
+  let opts = {
+    method: "GET",
+    headers: headers,
+    mode: "cors",
+    cache: "no-cache",
+  }
+
+  let response = null
+  try{
+    response = await fetch(url, opts);
+  }catch{
+    container.innerHTML = 'Failed to load contact form';
+    return
+  }
+
+  let html = await response.text()
+  container.innerHTML = html
+  let btn = document.getElementById('parlante-pingme-submit')
+  btn.onclick = function() {
+    parlantePingMe(parlante_url, client_uuid)
+  }
+}
+
+async function parlantePingMe(parlante_url, client_uuid) {
+  let url = parlante_url + '/pingme/' + client_uuid;
+  let name = document.getElementById("parlante-pingme-name").value;
+  let email = document.getElementById("parlante-pingme-email").value
+  let message = document.getElementById("parlante-pingme-content").value
+  if (!name || !email || !message) {
+    return
+  }
+  let body = JSON.stringify({
+    name: author,
+    content: content,
+  })
+  let headers = new Headers();
+
+  let opts = {
+    method: "POST",
+    mode: "cors",
+    cache: "no-cache",
+    headers: headers,
+    referrerPolicy: "unsafe-url",
+    body: body,
+  }
+
+  let container_id = "parlante-pingme-send"
+  let container_ok_id = "parlante-pingme-ok"
+  let container_error_id = "parlante-pingme-error"
+  let container = document.getElementById(container_id)
+  let container_ok = document.getElementById(container_ok_id)
+  let container_error = document.getElementById(container_error_id)
+  try{
+    let response = await fetch(url, opts)
+  }catch {
+    container.style.display = 'none'
+    container_error.style.display = 'block'
+    return
+  }
+  container.style.display = 'none'
+  container_ok.style.display = 'block'
+}

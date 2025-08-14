@@ -697,12 +697,6 @@ func TestCountCommentsHTML(t *testing.T) {
 func TestParlanteJS(t *testing.T) {
 	co := Config{}
 	s := NewServer(co)
-	s.ClientStorage = NewClientStorageInMemory()
-	s.ClientDomainStorage = NewClientDomainStorageInMemory()
-	s.CommentStorage = NewCommentStorageInMemory()
-	s.mux = http.NewServeMux()
-	s.BodyReader = io.ReadAll
-	s.setupUrls()
 
 	req, _ := http.NewRequest("GET", "/parlante.js", nil)
 	w := httptest.NewRecorder()
@@ -710,6 +704,279 @@ func TestParlanteJS(t *testing.T) {
 
 	if w.Code != 200 {
 		t.Fatalf("bad status for parlante.js %d", w.Code)
+	}
+}
+
+func TestGetPingMeForm(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.setupUrls()
+
+	c, _, _ := s.ClientStorage.CreateClient("test client")
+	s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"pingme form bad client",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/pingme/xxx", nil)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			403,
+		},
+		{
+			"pingme form wrong origin",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://blable.net")
+				return req
+
+			}(),
+			403,
+		},
+		{
+			"pingme form GET",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			200,
+		},
+		{
+			"pingme form OPTIONS",
+			func() *http.Request {
+				req, _ := http.NewRequest("OPTIONS", "/pingme/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			204,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for pingme form %d", w.Code)
+			}
+		})
+	}
+}
+
+func TestPingMe(t *testing.T) {
+
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	sender := TestMailSender{}
+	s.EmailSender = &sender
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.setupUrls()
+
+	c, _, _ := s.ClientStorage.CreateClient("test client")
+	s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+		setup    func()
+		teardown func()
+	}{
+		{
+			"pingme with bad client",
+			func() *http.Request {
+				uuid, _ := GenUUID4()
+				payload := PingMeRequest{
+					Name:    "Zé",
+					Message: "A message",
+					Email:   "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+uuid, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			403,
+			nil,
+			nil,
+		},
+		{
+			"pingme with wrong origin",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Name:    "Zé",
+					Message: "A message",
+					Email:   "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bleble.net")
+				return req
+
+			}(),
+			403,
+			nil,
+			nil,
+		},
+		{
+			"pingme missing body",
+			func() *http.Request {
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
+				return req
+
+			}(),
+			400,
+			nil,
+			nil,
+		},
+		{
+			"pingme bad body",
+			func() *http.Request {
+				body := bytes.NewBuffer([]byte(""))
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			400,
+			nil,
+			nil,
+		},
+		{
+			"pingme without name",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Message: "A message",
+					Email:   "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			400,
+			nil,
+			nil,
+		},
+		{
+			"pingme without message",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Name:  "Zé",
+					Email: "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			400,
+			nil,
+			nil,
+		},
+		{
+			"pingme without email",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Name:    "Zé",
+					Message: "A message",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			400,
+			nil,
+			nil,
+		},
+		{
+			"pingme error sending email",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Name:    "Zé",
+					Message: "A message",
+					Email:   "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			500,
+			func() { sender.ForceError(true) },
+			func() { sender.ForceError(false) },
+		},
+		{
+			"pingme ok",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Name:    "Zé",
+					Message: "A message",
+					Email:   "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			201,
+			nil,
+			nil,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			if test.setup != nil {
+				test.setup()
+			}
+			s.mux.ServeHTTP(w, test.req)
+
+			if test.teardown != nil {
+				test.teardown()
+			}
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
 	}
 
 }
@@ -944,6 +1211,27 @@ func TestComments_WithErrors(t *testing.T) {
 
 			}(),
 			500,
+		},
+		{
+			"get pingme form error rendering html",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			500,
+		},
+		{
+			"pingme error reading body",
+			func() *http.Request {
+				body := bytes.NewBuffer([]byte("bad body"))
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			400,
 		},
 	}
 

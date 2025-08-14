@@ -75,3 +75,33 @@ func TestNewComment(t *testing.T) {
 		})
 	}
 }
+
+func TestNewEmailMessage(t *testing.T) {
+
+	var tests = []struct {
+		testName string
+		from     string
+		to       []string
+		subject  string
+		body     string
+		hasError bool
+	}{
+		{"new without from", "", []string{"me@bla.net"}, "the subject", "hi!", true},
+		{"new without to", "me@bla.net", []string{}, "the subject", "hi!", true},
+		{"new nil to", "me@bla.net", nil, "the subject", "hi!", true},
+		{"new ok", "me@bla.net", []string{"me@bla.net"}, "the subject", "hi!", false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.testName, func(t *testing.T) {
+			_, err := NewEmailMessage(test.from, test.to, test.subject, test.body)
+			if err == nil && test.hasError {
+				t.Fatalf("No error")
+			}
+
+			if err != nil && !test.hasError {
+				t.Fatalf("Error!")
+			}
+		})
+	}
+}

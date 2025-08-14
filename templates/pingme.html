@@ -1,0 +1,23 @@
+<div id="parlante-pingme">
+<div id="parlante-pingme-send">
+  <label for="parlante-pingme-name">{{.nameLabel}}</label>
+  <input type="text" id="parlante-pingme-name" required><br/><br/>
+
+  <label for="parlante-pingme-email">email</label>
+  <input type="text" id="parlante-pingme-email" required><br/><br/>
+
+  <label for="parlante-pingme-content">{{.messageLabel}}</label>
+  <textarea id="parlante-pingme-content" required></textarea><br/><br/>
+  <button id="parlante-pingme-submit">{{.submitMessage}}</button>
+</div>
+
+
+<div id="parlante-pingme-ok" style="display:none">
+  {{.pingMeAddOkMsg}}
+</div>
+
+<div id="parlante-pingme-error" style="display:none">
+  {{.pingMeAddErrorMsg}}
+</div>
+
+</div>

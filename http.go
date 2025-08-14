@@ -33,6 +33,8 @@ type ctxKey string
 const ctxClientKey ctxKey = "client"
 const ctxDomainKey ctxKey = "domain"
 
+const emailAddr = "blog@pdj01.poraodojuca.dev"
+
 //go:embed js/parlante.js
 var parlanteJS []byte
 
@@ -41,10 +43,12 @@ type jsonMarshaler func(v any) ([]byte, error)
 type htmlRenderer func(s string, lang string, tz string, d map[string]any) ([]byte, error)
 type loggerFn func(format string, v ...any)
 
+// RequestLogger logs a request made to the parlante server
 type RequestLogger struct {
 	loggerFn loggerFn
 }
 
+// Log logs the ip, method, path, status and user agent
 func (l RequestLogger) Log(h http.Handler) http.Handler {
 	handler := func(w http.ResponseWriter, req *http.Request) {
 		sw := &StatusedResponseWriter{w, http.StatusOK}
@@ -69,25 +73,33 @@ func (l RequestLogger) getIp(req *http.Request) string {
 	return ip
 }
 
+// StatusedResponseWriter is a reponse writer that knows the
+// return status of the request
 type StatusedResponseWriter struct {
 	http.ResponseWriter
 	Status int
 }
 
+// WriteHeader writes the Status header in the response.
 func (w *StatusedResponseWriter) WriteHeader(code int) {
 	w.Status = code
 	w.ResponseWriter.WriteHeader(code)
 }
 
+// CreateCommentRequest is the structure of a json sent in the
+// body of a request to create a new comment
 type CreateCommentRequest struct {
 	Name    string `json:"name"`
 	Content string `json:"content"`
 }
 
-type CreateCommentResponse struct {
+// MsgResponse is a response with a single msg string field
+type MsgResponse struct {
 	Msg string `json:"msg"`
 }
 
+// CommentResponse is the information about a comment returned in the
+// comments list json
 type CommentResponse struct {
 	Author    string `json:"author"`
 	Content   string `json:"content"`
@@ -123,12 +135,22 @@ type CountCommentsHTMLResponse struct {
 	Items []CountCommentsHTMLItem `json:"items"`
 }
 
+// PingMeRequest represents the json structure sent in the body of the request
+// to send a new pingme message
+type PingMeRequest struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Message string `json:"message"`
+}
+
+// Config holds the configuration values used by the parlante server
 type Config struct {
 	Port         int
 	Host         string
 	CertFilePath string
 	KeyFilePath  string
 	DBPath       string
+	MaildirPath  string
 	LogLevel     string
 }
 
@@ -136,10 +158,12 @@ func (c Config) UsesSSL() bool {
 	return c.CertFilePath != "" && c.KeyFilePath != ""
 }
 
+// ParlanteServer is the server for the parlante http api
 type ParlanteServer struct {
 	ClientStorage       ClientStorage
 	ClientDomainStorage ClientDomainStorage
 	CommentStorage      CommentStorage
+	EmailSender         EmailSender
 	mux                 *http.ServeMux
 	BodyReader          bodyReader
 	JsonMarshaler       jsonMarshaler
@@ -179,7 +203,7 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	resp := CreateCommentResponse{Msg: "Ok"}
+	resp := MsgResponse{Msg: "Ok"}
 	j, _ := json.Marshal(resp)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
@@ -387,6 +411,75 @@ func (s ParlanteServer) CountCommentsHTML(w http.ResponseWriter, r *http.Request
 	w.Write(j)
 }
 
+// GetPingMeForm returns a html snippet to be used as a contact form
+// in allowed domains
+func (s ParlanteServer) GetPingMeForm(w http.ResponseWriter, r *http.Request) {
+	lang := getRequestLanguage(r)
+	tz := ""
+	loc := GetLocale(lang)
+	tmplCtx := make(map[string]any)
+	tmplCtx["nameLabel"] = loc.Get("Name")
+	tmplCtx["msgLabel"] = loc.Get("Your message")
+	tmplCtx["submitMsg"] = loc.Get("Send message")
+	tmplCtx["pingMeAddOkMsg"] = loc.Get("Message sent. Thank you!")
+	tmplCtx["pingMeAddErrorMsg"] = loc.Get("Error sending message.")
+	b, err := s.HtmlRenderer("pingme.html", lang, tz, tmplCtx)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}
+
+// PingMe send a message to a maildir
+func (s ParlanteServer) PingMe(w http.ResponseWriter, r *http.Request) {
+	if r.Body == nil {
+		http.Error(w, "Missing body", http.StatusBadRequest)
+		return
+	}
+	rawbody, err := s.BodyReader(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var body PingMeRequest
+	err = json.Unmarshal(rawbody, &body)
+	if err != nil {
+		http.Error(w, "Malformed json", http.StatusBadRequest)
+		return
+	}
+
+	if body.Name == "" || body.Email == "" || body.Message == "" {
+		http.Error(w, "Missing required params", http.StatusBadRequest)
+		return
+	}
+
+	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
+	loc := GetDefaultLocale()
+	data := make(map[string]any)
+	data["name"] = body.Name
+	data["domain"] = cd.Domain
+	subject := Tprintf(loc.Get("New message from {{.name}} at {{.domain}}"), data)
+	mailBody := body.Message
+
+	err = s.sendEmail(subject, mailBody)
+	if err != nil {
+		http.Error(w, "Error sending message", http.StatusInternalServerError)
+	}
+	resp := MsgResponse{Msg: "Ok"}
+	j, _ := json.Marshal(resp)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.WriteHeader(http.StatusCreated)
+	w.Write(j)
+}
+
 // ServeParlanteJS returns the parlante.js file that is used to render the
 // comments in a web page.
 func (s ParlanteServer) ServeParlanteJS(w http.ResponseWriter, r *http.Request) {
@@ -411,6 +504,25 @@ func (s ParlanteServer) Run() {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+// NewServer returns a new instance of ParlanteServer. Only one per process
+// must be used
+func NewServer(c Config) ParlanteServer {
+	s := ParlanteServer{}
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.JsonMarshaler = json.Marshal
+	s.HtmlRenderer = RenderTemplate
+	s.Config = c
+	s.ClientStorage = ClientStorageSQLite{}
+	s.ClientDomainStorage = ClientDomainStorageSQLite{}
+	s.CommentStorage = CommentStorageSQLite{}
+	sender := NewMaildirSender(s.Config.MaildirPath)
+	s.EmailSender = sender
+	SetLogLevelStr(c.LogLevel)
+	s.setupUrls()
+	return s
 }
 
 // checkClient checks if the client exists and the request origin
@@ -450,6 +562,15 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (s ParlanteServer) sendEmail(subject string, body string) error {
+	msg, err := NewEmailMessage(emailAddr, []string{emailAddr}, subject, body)
+	if err != nil {
+		return err
+	}
+
+	return s.EmailSender.SendEmail(msg)
 }
 
 func getDomainFromURL(url string) (string, error) {
@@ -499,6 +620,13 @@ func (s ParlanteServer) setupUrls() {
 	s.mux.Handle("OPTIONS /comment/{uuid}/count/html",
 		s.checkClient(http.HandlerFunc(handleCORS)))
 
+	s.mux.Handle("GET /pingme/{uuid}",
+		s.checkClient(http.HandlerFunc(s.GetPingMeForm)))
+	s.mux.Handle("POST /pingme/{uuid}",
+		s.checkClient(http.HandlerFunc(s.PingMe)))
+	s.mux.Handle("OPTIONS /pingme/{uuid}",
+		s.checkClient(http.HandlerFunc(handleCORS)))
+
 }
 
 func handleCORS(w http.ResponseWriter, r *http.Request) {
@@ -519,19 +647,4 @@ func getRequestLanguage(r *http.Request) string {
 	}
 	preferred := strings.Split(lang, ",")[0]
 	return strings.ReplaceAll(preferred, "-", "_")
-}
-
-func NewServer(c Config) ParlanteServer {
-	s := ParlanteServer{}
-	s.mux = http.NewServeMux()
-	s.BodyReader = io.ReadAll
-	s.JsonMarshaler = json.Marshal
-	s.HtmlRenderer = RenderTemplate
-	s.Config = c
-	s.ClientStorage = ClientStorageSQLite{}
-	s.ClientDomainStorage = ClientDomainStorageSQLite{}
-	s.CommentStorage = CommentStorageSQLite{}
-	SetLogLevelStr(c.LogLevel)
-	s.setupUrls()
-	return s
 }

@@ -183,10 +183,35 @@ type CommentStorage interface {
 // no content type and the body is a string, only text/plain bodies are
 // supported.
 type EmailMessage struct {
-	From  string
-	To    []string
-	Title string
-	Body  string
+	From      string
+	To        []string
+	Subject   string
+	Body      string
+	Timestamp int64
+}
+
+// NewEmailMessage checks for missing from or to.
+func NewEmailMessage(from string, to []string, subject string, body string) (EmailMessage, error) {
+	if from == "" {
+		return EmailMessage{}, errors.New("from can't be empty")
+	}
+	if to == nil || len(to) == 0 {
+		return EmailMessage{}, errors.New("to can't be empty")
+	}
+	ts := time.Now().Unix()
+	msg := EmailMessage{
+		From:      from,
+		To:        to,
+		Subject:   subject,
+		Body:      body,
+		Timestamp: ts,
+	}
+	return msg, nil
+}
+
+// EmailSender is an interface to send emails EmailMessage instances
+type EmailSender interface {
+	SendEmail(EmailMessage) error
 }
 
 // GenUUID4 returns a new uuid v4 converted to string
