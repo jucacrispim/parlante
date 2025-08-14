@@ -152,8 +152,9 @@ async function parlantePingMe(parlante_url, client_uuid) {
     return
   }
   let body = JSON.stringify({
-    name: author,
-    content: content,
+    name: name,
+    message: message,
+    email: email,
   })
   let headers = new Headers();
 
