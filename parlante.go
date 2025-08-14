@@ -1,4 +1,4 @@
-// Copyright 2025 Juca Crispim <juca@poraodojuca.net>
+// Copyright 2025 Juca Crispim <juca@poraodojuca.dev>
 
 // This file is part of parlante.
 
@@ -177,6 +177,16 @@ type CommentStorage interface {
 	ListComments(filter CommentsFilter) ([]Comment, error)
 	RemoveComment(comment Comment) error
 	CountComments(urls ...string) ([]CommentCount, error)
+}
+
+// EmailMessage represents an email to be sent. Note that as this have
+// no content type and the body is a string, only text/plain bodies are
+// supported.
+type EmailMessage struct {
+	From  string
+	To    []string
+	Title string
+	Body  string
 }
 
 // GenUUID4 returns a new uuid v4 converted to string
