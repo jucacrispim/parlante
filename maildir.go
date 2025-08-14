@@ -28,6 +28,8 @@ import (
 
 var mu = sync.Mutex{}
 
+const DEFAULT_MAILDIR_PATH = "/var/local/maildir/parlante"
+
 type keyGen func() (string, error)
 
 // MaildirSender represents a maildir delivery

@@ -12,6 +12,7 @@ import (
 
 func main() {
 	dbpath := flag.String("dbpath", parlante.DEFAULT_DB_PATH, "path for database file")
+	maildir := flag.String("maildir", parlante.DEFAULT_MAILDIR_PATH, "path for maildir")
 	host := flag.String("host", "0.0.0.0", "host to listen.")
 	port := flag.Int("port", 8080, "port to listen.")
 	certfile := flag.String("certfile", "", "Path for the tls certificate file")
@@ -25,6 +26,7 @@ func main() {
 		KeyFilePath:  *keyfile,
 		DBPath:       *dbpath,
 		LogLevel:     *loglevel,
+		MaildirPath:  *maildir,
 	}
 	err := parlante.SetupDB(c.DBPath)
 	if err != nil {
