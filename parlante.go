@@ -78,6 +78,8 @@ func NewClient(name string) (Client, string, error) {
 	return c, key, nil
 }
 
+// ClientStorage is an interface to save/retrieve information
+// about clients.
 type ClientStorage interface {
 	CreateClient(name string) (Client, string, error)
 	GetClientByUUID(uuid string) (Client, error)
@@ -93,6 +95,7 @@ type ClientDomain struct {
 	Client   *Client
 }
 
+// NewClientDomain instantiate a new  ClientDomain
 func NewClientDomain(c Client, domain string) ClientDomain {
 	d := ClientDomain{
 		ClientID: c.ID,
@@ -102,6 +105,8 @@ func NewClientDomain(c Client, domain string) ClientDomain {
 	return d
 }
 
+// ClientDomainStorage is an interface to save/retrieve information
+// about client domains
 type ClientDomainStorage interface {
 	AddClientDomain(c Client, domain string) (ClientDomain, error)
 	RemoveClientDomain(c Client, domain string) error
@@ -109,6 +114,8 @@ type ClientDomainStorage interface {
 	ListDomains() ([]ClientDomain, error)
 }
 
+// CommentsFilter contains the fields used to filter a query for
+// comments
 type CommentsFilter struct {
 	ClientID *int64
 	DomainID *int64
@@ -116,6 +123,7 @@ type CommentsFilter struct {
 	Hidden   *bool
 }
 
+// Comment is a comment made by an user in a web page.
 type Comment struct {
 	ID       int64
 	ClientID int64
@@ -126,15 +134,18 @@ type Comment struct {
 	Hidden   bool
 	Client   *Client
 	Domain   *ClientDomain
-	// unix timestamp for comment creating
+	// unix timestamp for comment creating. It must be in UTC timezone
 	Timestamp int64
 }
 
+// CommentCount has the count of comments made in a web page.
 type CommentCount struct {
 	PageURL string `json:"page_url"`
 	Count   int64  `json:"count"`
 }
 
+// NewComment returns a new instance of Comment. Checks for blank strings
+// for author, content e page_url. If missing returns an error.
 func NewComment(c Client, d ClientDomain, author string, content string,
 	page_url string) (Comment, error) {
 	if author == "" || content == "" || page_url == "" {
@@ -153,6 +164,8 @@ func NewComment(c Client, d ClientDomain, author string, content string,
 	return comment, nil
 }
 
+// CommentStorage is an interface to save/retrive information
+// from comments
 type CommentStorage interface {
 	CreateComment(
 		c Client,
@@ -166,6 +179,7 @@ type CommentStorage interface {
 	CountComments(urls ...string) ([]CommentCount, error)
 }
 
+// GenUUID4 returns a new uuid v4 converted to string
 func GenUUID4() (string, error) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
@@ -180,6 +194,7 @@ func GenUUID4() (string, error) {
 	return uuid, nil
 }
 
+// GenKey returns a random 32 chars string.
 func GenKey() (string, error) {
 	letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 	klen := 32
@@ -194,6 +209,7 @@ func GenKey() (string, error) {
 	return string(b), nil
 }
 
+// HashStr creates a new sha512 hash from a string
 func HashStr(s string) (string, error) {
 	hash := sha512.New()
 	_, err := hash.Write([]byte(s))
