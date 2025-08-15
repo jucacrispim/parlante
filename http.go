@@ -470,7 +470,9 @@ func (s ParlanteServer) PingMe(w http.ResponseWriter, r *http.Request) {
 
 	err = s.sendEmail(subject, mailBody)
 	if err != nil {
+		Errorf(err.Error())
 		http.Error(w, "Error sending message", http.StatusInternalServerError)
+		return
 	}
 	resp := MsgResponse{Msg: "Ok"}
 	j, _ := json.Marshal(resp)
