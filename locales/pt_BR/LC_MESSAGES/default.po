@@ -28,11 +28,11 @@ msgstr "Escolha um"
 msgid "Clients"
 msgstr "Clientes"
 
-#: http.go:241
+#: http.go:290
 msgid "Comment"
 msgstr "Comentário"
 
-#: http.go:243
+#: http.go:292
 msgid "Comment sent. Thank you!"
 msgstr "Comentário enviado. Obrigado!"
 
@@ -40,7 +40,7 @@ msgstr "Comentário enviado. Obrigado!"
 msgid "Comments"
 msgstr "Comentários"
 
-#: http.go:235
+#: http.go:284 http.go:385
 msgid "Comments (%d)"
 msgstr "Comentários (%d)"
 
@@ -48,15 +48,23 @@ msgstr "Comentários (%d)"
 msgid "Domains"
 msgstr "Domínios"
 
-#: http.go:244
+#: http.go:293
 msgid "Error sending comment."
 msgstr "Erro enviando comentário"
 
-#: http.go:237
+#: http.go:425
+msgid "Error sending message."
+msgstr "Erro enviando mensagem"
+
+#: http.go:286 http.go:388
 msgid "Leave your comment!"
 msgstr "Deixe seu comentário!"
 
-#: http.go:240
+#: http.go:424
+msgid "Message sent. Thank you!"
+msgstr "Mensagem enviada. Obrigado!"
+
+#: http.go:289 http.go:421
 msgid "Name"
 msgstr "Nome"
 
@@ -64,7 +72,11 @@ msgstr "Nome"
 msgid "New domain for {{.clientName}}"
 msgstr "Novo dominio para {{.clientName}}"
 
-#: http.go:238
+#: http.go:468
+msgid "New message from {{.name}} at {{.domain}}"
+msgstr "Nova mensagem de {{.name}} em {{.domain}}"
+
+#: http.go:287
 msgid "No comments."
 msgstr "Sem comentários"
 
@@ -92,9 +104,17 @@ msgstr "adcionar / remover clientes"
 msgid "Remove domain"
 msgstr "Remover domínio"
 
-#: http.go:242
+#: http.go:291
 msgid "Send comment"
 msgstr "Enviar comentário"
+
+#: http.go:423
+msgid "Send message"
+msgstr "Enviar mensagem"
+
+#: http.go:422
+msgid "Your message"
+msgstr "Sua mensagem"
 
 #: tui/messages.go:47
 msgid "add"
