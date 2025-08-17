@@ -466,7 +466,7 @@ func (s ParlanteServer) PingMe(w http.ResponseWriter, r *http.Request) {
 	data["name"] = body.Name
 	data["domain"] = cd.Domain
 	subject := Tprintf(loc.Get("New message from {{.name}} at {{.domain}}"), data)
-	mailBody := body.Message
+	mailBody := fmt.Sprintf("email: %s\n\n%s", body.Email, body.Message)
 
 	err = s.sendEmail(subject, mailBody)
 	if err != nil {
