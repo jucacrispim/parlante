@@ -58,6 +58,7 @@ func TestCreateComment(t *testing.T) {
 	s.CommentStorage = NewCommentStorageInMemory()
 	s.mux = http.NewServeMux()
 	s.BodyReader = io.ReadAll
+	s.EmailSender = TestMailSender{}
 	s.setupUrls()
 
 	c, _, _ := s.ClientStorage.CreateClient("test client")

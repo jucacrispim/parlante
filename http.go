@@ -203,6 +203,19 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	loc := GetDefaultLocale()
+	go func() {
+		data := make(map[string]any)
+		data["name"] = body.Name
+		data["domain"] = cd.Domain
+		subject := Tprintf(loc.Get("New message from {{.name}} at {{.domain}}"), data)
+		mailBody := fmt.Sprintf("url: %s\n\n%s", page_url, body.Content)
+		err := s.sendEmail(subject, mailBody)
+		if err != nil {
+			Errorf("error sending email %s", err.Error())
+		}
+
+	}()
 	resp := MsgResponse{Msg: "Ok"}
 	j, _ := json.Marshal(resp)
 	w.Header().Set("Content-Type", "application/json")
