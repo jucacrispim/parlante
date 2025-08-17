@@ -23,11 +23,11 @@ msgstr ""
 msgid "Clients"
 msgstr ""
 
-#: http.go:290
+#: http.go:303
 msgid "Comment"
 msgstr ""
 
-#: http.go:292
+#: http.go:305
 msgid "Comment sent. Thank you!"
 msgstr ""
 
@@ -35,8 +35,8 @@ msgstr ""
 msgid "Comments"
 msgstr ""
 
-#: http.go:284
-#: http.go:385
+#: http.go:297
+#: http.go:398
 msgid "Comments (%d)"
 msgstr ""
 
@@ -44,37 +44,41 @@ msgstr ""
 msgid "Domains"
 msgstr ""
 
-#: http.go:293
+#: http.go:306
 msgid "Error sending comment."
 msgstr ""
 
-#: http.go:425
+#: http.go:438
 msgid "Error sending message."
 msgstr ""
 
-#: http.go:286
-#: http.go:388
+#: http.go:299
+#: http.go:401
 msgid "Leave your comment!"
 msgstr ""
 
-#: http.go:424
+#: http.go:437
 msgid "Message sent. Thank you!"
 msgstr ""
 
-#: http.go:289
-#: http.go:421
+#: http.go:302
+#: http.go:434
 msgid "Name"
+msgstr ""
+
+#: http.go:211
+msgid "New comment from {{.name}} at {{.domain}}"
 msgstr ""
 
 #: tui/messages.go:39
 msgid "New domain for {{.clientName}}"
 msgstr ""
 
-#: http.go:468
+#: http.go:481
 msgid "New message from {{.name}} at {{.domain}}"
 msgstr ""
 
-#: http.go:287
+#: http.go:300
 msgid "No comments."
 msgstr ""
 
@@ -102,15 +106,15 @@ msgstr ""
 msgid "Remove domain"
 msgstr ""
 
-#: http.go:291
+#: http.go:304
 msgid "Send comment"
 msgstr ""
 
-#: http.go:423
+#: http.go:436
 msgid "Send message"
 msgstr ""
 
-#: http.go:422
+#: http.go:435
 msgid "Your message"
 msgstr ""
 

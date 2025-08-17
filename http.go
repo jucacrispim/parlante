@@ -208,7 +208,7 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 		data := make(map[string]any)
 		data["name"] = body.Name
 		data["domain"] = cd.Domain
-		subject := Tprintf(loc.Get("New message from {{.name}} at {{.domain}}"), data)
+		subject := Tprintf(loc.Get("New comment from {{.name}} at {{.domain}}"), data)
 		mailBody := fmt.Sprintf("url: %s\n\n%s", page_url, body.Content)
 		err := s.sendEmail(subject, mailBody)
 		if err != nil {
