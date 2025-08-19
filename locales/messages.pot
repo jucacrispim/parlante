@@ -11,7 +11,7 @@ msgstr ""
 msgid "Add new client"
 msgstr ""
 
-#: tui/messages.go:37
+#: tui/messages.go:38
 msgid "Choose a client"
 msgstr ""
 
@@ -19,15 +19,19 @@ msgstr ""
 msgid "Choose one"
 msgstr ""
 
+#: tui/messages.go:32
+msgid "Client {{.clientName}} was added:\n\nKey: {{.key}}"
+msgstr ""
+
 #: tui/messages.go:24
 msgid "Clients"
 msgstr ""
 
-#: http.go:303
+#: http.go:307
 msgid "Comment"
 msgstr ""
 
-#: http.go:305
+#: http.go:309
 msgid "Comment sent. Thank you!"
 msgstr ""
 
@@ -35,8 +39,8 @@ msgstr ""
 msgid "Comments"
 msgstr ""
 
-#: http.go:297
-#: http.go:398
+#: http.go:301
+#: http.go:402
 msgid "Comments (%d)"
 msgstr ""
 
@@ -44,81 +48,85 @@ msgstr ""
 msgid "Domains"
 msgstr ""
 
-#: http.go:306
+#: http.go:310
 msgid "Error sending comment."
 msgstr ""
 
-#: http.go:438
+#: http.go:442
 msgid "Error sending message."
 msgstr ""
 
-#: http.go:299
-#: http.go:401
+#: http.go:303
+#: http.go:405
 msgid "Leave your comment!"
 msgstr ""
 
-#: http.go:437
+#: http.go:441
 msgid "Message sent. Thank you!"
 msgstr ""
 
-#: http.go:302
-#: http.go:434
+#: http.go:306
+#: http.go:438
 msgid "Name"
 msgstr ""
 
-#: http.go:211
+#: http.go:215
 msgid "New comment from {{.name}} at {{.domain}}"
 msgstr ""
 
-#: tui/messages.go:39
+#: tui/messages.go:40
 msgid "New domain for {{.clientName}}"
 msgstr ""
 
-#: http.go:481
+#: http.go:485
 msgid "New message from {{.name}} at {{.domain}}"
 msgstr ""
 
-#: http.go:300
+#: http.go:304
 msgid "No comments."
 msgstr ""
 
-#: tui/messages.go:34
+#: tui/messages.go:48
+msgid "Press enter to continue"
+msgstr ""
+
+#: tui/messages.go:35
 msgid "Really want to remove client {{.name}}?"
 msgstr ""
 
-#: tui/messages.go:44
+#: tui/messages.go:45
 msgid "Really want to remove comment from {{.name}} at {{.url}}?"
 msgstr ""
 
-#: tui/messages.go:41
+#: tui/messages.go:42
 msgid "Really want to remove domain {{.domain}}?"
 msgstr ""
 
-#: tui/messages.go:33
+#: tui/messages.go:34
 msgid "Remove client"
 msgstr ""
 
-#: tui/messages.go:43
+#: tui/messages.go:44
 msgid "Remove comment"
 msgstr ""
 
-#: tui/messages.go:40
+#: tui/messages.go:41
 msgid "Remove domain"
 msgstr ""
 
-#: http.go:304
+#: http.go:308
 msgid "Send comment"
 msgstr ""
 
-#: http.go:436
+#: http.go:440
 msgid "Send message"
 msgstr ""
 
-#: http.go:435
+#: http.go:439
 msgid "Your message"
 msgstr ""
 
-#: tui/messages.go:47
+#: tui/messages.go:50
 msgid "add"
 msgstr ""
 
@@ -130,51 +138,51 @@ msgstr ""
 msgid "add / remove domains"
 msgstr ""
 
-#: tui/messages.go:60
+#: tui/messages.go:63
 msgid "apply filter"
 msgstr ""
 
-#: tui/messages.go:58
+#: tui/messages.go:61
 msgid "cancel"
 msgstr ""
 
-#: tui/messages.go:57
+#: tui/messages.go:60
 msgid "clear filter"
 msgstr ""
 
-#: tui/messages.go:32
+#: tui/messages.go:33
 msgid "client name"
 msgstr ""
 
-#: tui/messages.go:36
+#: tui/messages.go:37
 msgid "client: {{.clientName}}"
 msgstr ""
 
-#: tui/messages.go:62
+#: tui/messages.go:65
 msgid "close help"
 msgstr ""
 
-#: tui/messages.go:59
+#: tui/messages.go:62
 msgid "confirm"
 msgstr ""
 
-#: tui/messages.go:38
+#: tui/messages.go:39
 msgid "domain name"
 msgstr ""
 
-#: tui/messages.go:51
+#: tui/messages.go:54
 msgid "down"
 msgstr ""
 
-#: tui/messages.go:56
+#: tui/messages.go:59
 msgid "filter"
 msgstr ""
 
-#: tui/messages.go:55
+#: tui/messages.go:58
 msgid "go to end"
 msgstr ""
 
-#: tui/messages.go:54
+#: tui/messages.go:57
 msgid "go to start"
 msgstr ""
 
@@ -182,34 +190,34 @@ msgstr ""
 msgid "manage comments"
 msgstr ""
 
-#: tui/messages.go:61
+#: tui/messages.go:64
 msgid "more"
 msgstr ""
 
-#: tui/messages.go:53
+#: tui/messages.go:56
 msgid "next page"
 msgstr ""
 
-#: tui/messages.go:52
+#: tui/messages.go:55
 msgid "prev page"
 msgstr ""
 
-#: tui/messages.go:49
+#: tui/messages.go:52
 msgid "prev screen"
 msgstr ""
 
-#: tui/messages.go:63
+#: tui/messages.go:66
 msgid "quit"
 msgstr ""
 
-#: tui/messages.go:48
+#: tui/messages.go:51
 msgid "remove"
 msgstr ""
 
-#: tui/messages.go:64
+#: tui/messages.go:67
 msgid "select"
 msgstr ""
 
-#: tui/messages.go:50
+#: tui/messages.go:53
 msgid "up"
 msgstr ""
