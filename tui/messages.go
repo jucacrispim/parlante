@@ -29,6 +29,7 @@ var MESSAGE_COMMENTS = loc.Get("Comments")
 var MESSAGE_COMMENTS_SCREEN_DESCR = loc.Get("manage comments")
 var MESSAGE_CHOOSE_ONE = loc.Get("Choose one")
 var MESSAGE_ADD_CLIENT = loc.Get("Add new client")
+var MESSAGE_CLIENT_ADDED_INFO = loc.Get("Client {{.clientName}} was added:\n\nKey: {{.key}}")
 var MESSAGE_CLIENT_NAME = loc.Get("client name")
 var MESSAGE_REMOVE_CLIENT = loc.Get("Remove client")
 var MESSAGE_REMOVE_CLIENT_CONFIRM = loc.Get(
@@ -43,6 +44,8 @@ var MESSAGE_REMOVE_DOMAIN_CONFIRM = loc.Get(
 var MESSAGE_REMOVE_COMMENT = loc.Get("Remove comment")
 var MESSAGE_REMOVE_COMMENT_CONFIRM = loc.Get(
 	"Really want to remove comment from {{.name}} at {{.url}}?")
+
+var MESAGE_ENTER_TO_CONTINUE = loc.Get("Press enter to continue")
 
 var MESSAGE_KEY_HELP_ADD = loc.Get("add")
 var MESSAGE_KEY_HELP_REMOVE = loc.Get("remove")

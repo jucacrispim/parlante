@@ -48,6 +48,8 @@ type RequestLogger struct {
 	loggerFn loggerFn
 }
 
+type authFn func(ClientStorage, string, string) (Client, error)
+
 // Log logs the ip, method, path, status and user agent
 func (l RequestLogger) Log(h http.Handler) http.Handler {
 	handler := func(w http.ResponseWriter, req *http.Request) {
@@ -152,6 +154,7 @@ type Config struct {
 	DBPath       string
 	MaildirPath  string
 	LogLevel     string
+	Auth         bool
 }
 
 func (c Config) UsesSSL() bool {
@@ -169,6 +172,7 @@ type ParlanteServer struct {
 	JsonMarshaler       jsonMarshaler
 	HtmlRenderer        htmlRenderer
 	Config              Config
+	AuthFn              authFn
 }
 
 // CreateComment creates a new comment for a given web page. The page
@@ -535,6 +539,7 @@ func NewServer(c Config) ParlanteServer {
 	s.CommentStorage = CommentStorageSQLite{}
 	sender := NewMaildirSender(s.Config.MaildirPath)
 	s.EmailSender = sender
+	s.AuthFn = AuthClient
 	SetLogLevelStr(c.LogLevel)
 	s.setupUrls()
 	return s
@@ -546,7 +551,15 @@ func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uuid := r.PathValue("uuid")
 		uuid = strings.ToLower(uuid)
-		c, err := s.ClientStorage.GetClientByUUID(uuid)
+		var c Client
+		var err error
+		if s.Config.Auth {
+			key := r.Header.Get("X-APIKey")
+			c, err = s.AuthFn(s.ClientStorage, uuid, key)
+		} else {
+			c, err = s.ClientStorage.GetClientByUUID(uuid)
+		}
+
 		if err != nil {
 			Errorf(err.Error())
 			http.Error(w, "Forbidden", http.StatusForbidden)
@@ -649,7 +662,10 @@ func handleCORS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	h := "Content-Type, Authorization, Accepted-Language, X-Timezone, X-PageURL"
+
+	h := "Content-Type, Authorization, Accepted-Language, X-Timezone, X-PageURL, X-APIKey"
+	h += ", X-ClientUUID"
+
 	w.Header().Set("Access-Control-Allow-Headers", h)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.WriteHeader(http.StatusNoContent)

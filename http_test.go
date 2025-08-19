@@ -155,6 +155,77 @@ func TestCreateComment(t *testing.T) {
 
 }
 
+func TestCreateComment_Auth(t *testing.T) {
+
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.EmailSender = TestMailSender{}
+	s.Config.Auth = true
+	s.setupUrls()
+
+	c, key, _ := s.ClientStorage.CreateClient("test client")
+	s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"comment with bad key",
+			func() *http.Request {
+				payload := CreateCommentRequest{
+					Name:    "Zé",
+					Content: "A comment",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req.Header.Set("X-APIKey", "bad")
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
+				return req
+
+			}(),
+			403},
+		{
+			"comment ok",
+			func() *http.Request {
+				payload := CreateCommentRequest{
+					Name:    "Zé",
+					Content: "A comment",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req.Header.Set("X-APIKey", key)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post")
+				return req
+
+			}(),
+			201},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+
+}
+
 func TestListComments(t *testing.T) {
 	co := Config{}
 	s := NewServer(co)
@@ -248,6 +319,94 @@ func TestListComments(t *testing.T) {
 			"list comments ok",
 			func() *http.Request {
 				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+			}(),
+			200,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+}
+
+func TestListComments_auth(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.Config.Auth = true
+	s.setupUrls()
+
+	c, key, _ := s.ClientStorage.CreateClient("test client")
+	d, _ := s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	comments := []Comment{
+		{
+			Author:  "Zé",
+			Content: "The comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Tião",
+			Content: "The other comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Jão",
+			Content: "The new comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Zé",
+			Content: "The new new comment",
+			PageURL: "http://bla.net/post2",
+		},
+		{
+			Author:  "Jão",
+			Content: "Another comment",
+			PageURL: "http://bla.net/post2",
+		},
+	}
+
+	for _, co := range comments {
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
+	}
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"list comments with bad key",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req.Header.Set("X-APIKey", "bad")
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+			}(),
+			403,
+		},
+		{
+			"list comments ok",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
@@ -410,6 +569,95 @@ func TestListCommentsHTML(t *testing.T) {
 	}
 }
 
+func TestListCommentsHTML_Auth(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.Config.Auth = true
+	s.setupUrls()
+
+	c, key, _ := s.ClientStorage.CreateClient("test client")
+	d, _ := s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	comments := []Comment{
+		{
+			Author:  "Zé",
+			Content: "The comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Tião",
+			Content: "The other comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Jão",
+			Content: "The new comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Zé",
+			Content: "The new new comment",
+			PageURL: "http://bla.net/post2",
+		},
+		{
+			Author:  "Jão",
+			Content: "Another comment",
+			PageURL: "http://bla.net/post2",
+		},
+	}
+
+	for _, co := range comments {
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
+	}
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"list comments html with bad key",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("X-APIKey", "bad")
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+			}(),
+			403,
+		},
+		{
+			"list comments html ok",
+			func() *http.Request {
+				req, _ := http.NewRequest(
+					"GET", "/comment/"+c.UUID+"/html", nil)
+				req.Header.Set("X-APIKey", key)
+				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				return req
+			}(),
+			200,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+}
+
 func TestCountComments(t *testing.T) {
 	co := Config{}
 	s := NewServer(co)
@@ -531,6 +779,102 @@ func TestCountComments(t *testing.T) {
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
 				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			200,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+}
+
+func TestCountComments_Auth(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.Config.Auth = true
+	s.setupUrls()
+
+	c, key, _ := s.ClientStorage.CreateClient("test client")
+	d, _ := s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	comments := []Comment{
+		{
+			Author:  "Zé",
+			Content: "The comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Tião",
+			Content: "The other comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Jão",
+			Content: "The new comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Zé",
+			Content: "The new new comment",
+			PageURL: "http://bla.net/post2",
+		},
+		{
+			Author:  "Jão",
+			Content: "Another comment",
+			PageURL: "http://bla.net/post2",
+		},
+	}
+
+	for _, co := range comments {
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
+	}
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"count comments with bad key",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("X-APIKey", "bad")
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments ok",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 			}(),
@@ -695,6 +1039,103 @@ func TestCountCommentsHTML(t *testing.T) {
 	}
 }
 
+func TestCountCommentsHTML_Auth(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.Config.Auth = true
+	s.setupUrls()
+
+	c, key, _ := s.ClientStorage.CreateClient("test client")
+	d, _ := s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	comments := []Comment{
+		{
+			Author:  "Zé",
+			Content: "The comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Tião",
+			Content: "The other comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Jão",
+			Content: "The new comment",
+			PageURL: "http://bla.net/post1",
+		},
+		{
+			Author:  "Zé",
+			Content: "The new new comment",
+			PageURL: "http://bla.net/post2",
+		},
+		{
+			Author:  "Jão",
+			Content: "Another comment",
+			PageURL: "http://bla.net/post2",
+		},
+	}
+
+	for _, co := range comments {
+		s.CommentStorage.CreateComment(c, d, co.Author, co.Content, co.PageURL)
+	}
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"count comments html with bad key",
+			func() *http.Request {
+				uuid, _ := GenUUID4()
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+uuid+"/count/html", body)
+				req.Header.Set("X-APIKey", "Bad")
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			403,
+		},
+		{
+			"count comments html ok",
+			func() *http.Request {
+				payload := CountCommentsRequest{
+					PageURLs: []string{"http://bla.net/post1", "http://bla.net/post2"},
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req.Header.Set("X-APIKey", key)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+			}(),
+			200,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+}
+
 func TestParlanteJS(t *testing.T) {
 	co := Config{}
 	s := NewServer(co)
@@ -765,6 +1206,61 @@ func TestGetPingMeForm(t *testing.T) {
 
 			}(),
 			204,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			s.mux.ServeHTTP(w, test.req)
+
+			if w.Code != test.status {
+				t.Fatalf("bad status for pingme form %d", w.Code)
+			}
+		})
+	}
+}
+
+func TestGetPingMeForm_Auth(t *testing.T) {
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.Config.Auth = true
+	s.setupUrls()
+
+	c, key, _ := s.ClientStorage.CreateClient("test client")
+	s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+	}{
+		{
+			"pingme form bad client",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req.Header.Set("X-APIKey", "bad")
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			403,
+		},
+		{
+			"pingme form GET",
+			func() *http.Request {
+				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req.Header.Set("X-APIKey", key)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			200,
 		},
 	}
 
@@ -952,6 +1448,92 @@ func TestPingMe(t *testing.T) {
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
 				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			201,
+			nil,
+			nil,
+		},
+	}
+
+	for _, test := range test_data {
+		t.Run(test.testName, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			if test.setup != nil {
+				test.setup()
+			}
+			s.mux.ServeHTTP(w, test.req)
+
+			if test.teardown != nil {
+				test.teardown()
+			}
+			if w.Code != test.status {
+				t.Fatalf("bad status for %d", w.Code)
+			}
+
+		})
+	}
+
+}
+
+func TestPingMe_Auth(t *testing.T) {
+
+	co := Config{}
+	s := NewServer(co)
+	s.ClientStorage = NewClientStorageInMemory()
+	s.ClientDomainStorage = NewClientDomainStorageInMemory()
+	s.CommentStorage = NewCommentStorageInMemory()
+	sender := TestMailSender{}
+	s.EmailSender = &sender
+	s.mux = http.NewServeMux()
+	s.BodyReader = io.ReadAll
+	s.Config.Auth = true
+	s.setupUrls()
+
+	c, key, _ := s.ClientStorage.CreateClient("test client")
+	s.ClientDomainStorage.AddClientDomain(c, "bla.net")
+
+	var test_data = []struct {
+		testName string
+		req      *http.Request
+		status   int
+		setup    func()
+		teardown func()
+	}{
+		{
+			"pingme with bad key",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Name:    "Zé",
+					Message: "A message",
+					Email:   "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("X-APIKey", "bad")
+				req.Header.Set("Origin", "https://bla.net")
+				return req
+
+			}(),
+			403,
+			nil,
+			nil,
+		},
+		{
+			"pingme ok",
+			func() *http.Request {
+				payload := PingMeRequest{
+					Name:    "Zé",
+					Message: "A message",
+					Email:   "a@a.com",
+				}
+				j, _ := json.Marshal(payload)
+				body := bytes.NewBuffer(j)
+				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 

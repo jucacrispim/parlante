@@ -48,7 +48,7 @@ func TestAddClientScreen(t *testing.T) {
 				return m.addClient()()
 			},
 			func(m tea.Model, cmd tea.Cmd) {
-				_, ok := m.(AddRemoveItemScreen)
+				_, ok := m.(clientAddedScreenInfo)
 				if !ok {
 					t.Fatalf("bad model for add client")
 				}
@@ -132,6 +132,65 @@ func TestAddClientScreen(t *testing.T) {
 				}
 				view := nm.View()
 				if !strings.Contains(view, nm.err.Error()) {
+					t.Fatalf("missing expected elements %s", view)
+				}
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.testName, func(t *testing.T) {
+			screen := test.screenFn()
+			msg := test.msgFn(screen)
+			m, cmd := screen.Update(msg)
+			test.checkFn(m, cmd)
+		})
+	}
+}
+
+func TestClientAddedScreenInfo(t *testing.T) {
+
+	cs := parlante.NewClientStorageInMemory()
+	client, key, _ := cs.CreateClient("some client")
+	main := newMainScreen(cs, nil, nil)
+
+	var tests = []struct {
+		testName string
+		screenFn func() clientAddedScreenInfo
+		msgFn    func(clientAddedScreenInfo) tea.Msg
+		checkFn  func(tea.Model, tea.Cmd)
+	}{
+		{
+			"test confirm continue",
+			func() clientAddedScreenInfo {
+				return newClientAddedScreenInfo(main, client, key)
+			},
+			func(m clientAddedScreenInfo) tea.Msg {
+				return tea.KeyMsg{Type: tea.KeyEnter}
+			},
+			func(m tea.Model, cmd tea.Cmd) {
+				_, ok := m.(AddRemoveItemScreen)
+				if !ok {
+					t.Fatalf("bad model for confirm continue")
+				}
+			},
+		},
+		{
+			"test View",
+			func() clientAddedScreenInfo {
+				m := newClientAddedScreenInfo(main, client, key)
+				return m
+			},
+			func(m clientAddedScreenInfo) tea.Msg {
+				return nil
+			},
+			func(m tea.Model, cmd tea.Cmd) {
+				nm, ok := m.(clientAddedScreenInfo)
+				if !ok {
+					t.Fatalf("bad model for View test")
+				}
+				view := nm.View()
+				if !strings.Contains(view, key) {
 					t.Fatalf("missing expected elements %s", view)
 				}
 			},

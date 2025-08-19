@@ -29,6 +29,7 @@ import (
 
 type addClientMsg struct {
 	client parlante.Client
+	key    string
 	err    error
 }
 
@@ -55,7 +56,7 @@ func (m addClientScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.err != nil {
 			return m, nil
 		}
-		model := newClientListScreen(m.mainScreen)
+		model := newClientAddedScreenInfo(m.mainScreen, msg.client, msg.key)
 		return model, model.Init()
 	case tea.KeyMsg:
 		switch {
@@ -94,9 +95,10 @@ func (m addClientScreen) View() string {
 
 func (m addClientScreen) addClient() tea.Cmd {
 	return func() tea.Msg {
-		client, _, err := m.clientStorage.CreateClient(m.textinput.Value())
+		client, key, err := m.clientStorage.CreateClient(m.textinput.Value())
 		msg := addClientMsg{
 			client: client,
+			key:    key,
 			err:    err,
 		}
 		return msg
@@ -118,4 +120,60 @@ func newAddClientScreen(mainScreen mainScreen) addClientScreen {
 		help:          createHelp(),
 	}
 	return m
+}
+
+type clientAddedScreenInfo struct {
+	mainScreen mainScreen
+	client     parlante.Client
+	key        string
+	keys       ConfirmCancelKeyMap
+}
+
+func (s clientAddedScreenInfo) Init() tea.Cmd {
+	return nil
+}
+
+func (m clientAddedScreenInfo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	m.mainScreen.header.Update(msg)
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keys.Confirm):
+			model := newClientListScreen(m.mainScreen)
+			return model, model.Init()
+		}
+
+	}
+	return m, cmd
+}
+
+func (m clientAddedScreenInfo) View() string {
+	s := m.mainScreen.header.View()
+	data := make(map[string]any, 0)
+	data["clientName"] = m.client.Name
+	data["key"] = m.key
+	content := parlante.Tprintf(MESSAGE_CLIENT_ADDED_INFO, data)
+
+	s += content + "\n\n"
+	lines := strings.Split(s, "\n")
+	rest := m.mainScreen.list.Height() - len(lines) + 2
+
+	helpView := MESAGE_ENTER_TO_CONTINUE
+	s += strings.Repeat("\n", rest) + helpViewStyle.Render(helpView)
+	return s
+}
+
+func newClientAddedScreenInfo(
+	m mainScreen,
+	client parlante.Client,
+	key string) clientAddedScreenInfo {
+
+	s := clientAddedScreenInfo{
+		mainScreen: m,
+		client:     client,
+		key:        key,
+		keys:       NewConfirmCancelKeyMap(),
+	}
+	return s
 }
