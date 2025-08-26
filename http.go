@@ -247,9 +247,9 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param X-PageURL header string true "URL for the page originating the comment"
-// @Param client_uuid path string true "The client uuid"
+// @Param X-ClientUUID header string true "The client uuid"
 // @Success 200  {object} ListCommentsResponse
-// @Router /comments/{client_uuid} [get]
+// @Router /comments/ [get]
 func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
@@ -297,10 +297,10 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 // @Produce html
 // @Param X-PageURL header string true "URL for the page originating the comment"
 // @Param X-Timezone header string true "User local timezone"
+// @Param X-ClientUUID header string true "The client uuid"
 // @Param Accepted-Language header string true "Idioma do usuário"
-// @Param client_uuid path string true "The client uuid"
 // @Success 200
-// @Router /comments/{client_uuid}/html [get]
+// @Router /comments/html [get]
 func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request) {
 
 	c := r.Context().Value(ctxClientKey).(Client)
@@ -354,10 +354,10 @@ func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request)
 // @Description Counts the comments in the requested urls
 // @Accept json
 // @Produce json
-// @Param client_uuid path string true "The client uuid"
+// @Param X-ClientUUID header string true "The client uuid"
 // @Param data body CountCommentsRequest true "URLs to count the comments from"
 // @Success 200 {object} CountCommentsResponse
-// @Router /comments/{client_uuid}/count [post]
+// @Router /comments/count [post]
 func (s ParlanteServer) CountComments(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)
@@ -402,10 +402,10 @@ func (s ParlanteServer) CountComments(w http.ResponseWriter, r *http.Request) {
 // @Description Counts the comments in the requested urls
 // @Accept json
 // @Produce json
-// @Param client_uuid path string true "The client uuid"
+// @Param X-ClientUUID header string true "The client uuid"
 // @Param data body CountCommentsRequest true "URLs to count the comments from"
 // @Success 200
-// @Router /comments/{client_uuid}/count/html [post]
+// @Router /comments/count/html [post]
 func (s ParlanteServer) CountCommentsHTML(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)
@@ -474,9 +474,9 @@ func (s ParlanteServer) CountCommentsHTML(w http.ResponseWriter, r *http.Request
 // @Summary Get ping me form
 // @Accept json
 // @Produce html
-// @Param client_uuid path string true "The client uuid"
+// @Param X-ClientUUID header string true "The client uuid"
 // @Success 200
-// @Router /pingme/{client_uuid} [get]
+// @Router /pingme/ [get]
 func (s ParlanteServer) GetPingMeForm(w http.ResponseWriter, r *http.Request) {
 	lang := getRequestLanguage(r)
 	tz := ""
@@ -504,10 +504,10 @@ func (s ParlanteServer) GetPingMeForm(w http.ResponseWriter, r *http.Request) {
 // @Description Send a contact message
 // @Accept json
 // @Produce json
-// @Param client_uuid path string true "The client uuid"
+// @Param X-ClientUUID header string true "The client uuid"
 // @Param data body PingMeRequest true "Body for the contact request"
 // @Success 200
-// @Router /pingme/{client_uuid} [post]
+// @Router /pingme/ [post]
 func (s ParlanteServer) PingMe(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)

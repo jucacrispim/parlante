@@ -66,7 +66,7 @@ page.
 This is going to render the comments and the comment form in the page.
 
 For the create comment and list comment json endpoints, check `post comment <./swagger/#/paths/~1comments~1/post>`_
-and the `get comments <./swagger/#/paths/~1comments~1%7Bclient_uuid%7D/get>`_
+and the `get comments <./swagger/#/paths/~1comments~1/get>`_
 endpoints.
 
 
@@ -74,7 +74,7 @@ Counting comments
 ~~~~~~~~~~~~~~~~~
 
 You can also count the comments in a list of web pages. Use the
-`count comments <./swagger/#/paths/~1comments~1{client_uuid}~1count/post>`_ endpoint.
+`count comments <./swagger/#/paths/~1comments~1count/post>`_ endpoint.
 
 
 Contact form
@@ -88,4 +88,4 @@ There is also a contact form available. To the html version use:
    <script src="<PARLANTE_URL>/parlante.js" async onload="parlanteGetPingMeForm('<PARLANTE_URL>', '<CLIENT_UUID>', 'contact-container')"></script>
 
 
-For the js endpoints check the `pingme <./swagger/#/paths/~1pingme~1{client_uuid}/post>`_.
+For the js endpoints check the `pingme <./swagger/#/paths/~1pingme~1/post>`_.
