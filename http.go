@@ -17,6 +17,12 @@
 
 package parlante
 
+// @title Parlante API
+// @version 0.1
+// @licence.name AGPLv3
+// @in header
+// @name X-APIKey
+
 import (
 	"context"
 	_ "embed"
@@ -175,8 +181,15 @@ type ParlanteServer struct {
 	AuthFn              authFn
 }
 
-// CreateComment creates a new comment for a given web page. The page
-// is the url in the `X-PageURL` header.
+// CreateComment add a new comment to a given page
+// @Summary Create Comment
+// @Description Adds a new comment to a given web page
+// @Accept json
+// @Produce json
+// @Param X-PageURL header string true "URL for the page originating the comment"
+// @Param data body CreateCommentRequest true "The comment"
+// @Success 200  {object} MsgResponse
+// @Router /comments/ [post]
 func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)
@@ -228,8 +241,15 @@ func (s ParlanteServer) CreateComment(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
-// ListComments returns a json with the commments for a given page. The page
-// is the URL in the `X-PageURL` header
+// ListComments list the comments in a given page.
+// @Summary List Comments
+// @Description Returns a json with a list of comments an the total of comments
+// @Accept json
+// @Produce json
+// @Param X-PageURL header string true "URL for the page originating the comment"
+// @Param client_uuid path string true "The client uuid"
+// @Success 200  {object} ListCommentsResponse
+// @Router /comments/{client_uuid} [get]
 func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	c := r.Context().Value(ctxClientKey).(Client)
 	cd := r.Context().Value(ctxDomainKey).(ClientDomain)
@@ -270,9 +290,17 @@ func (s ParlanteServer) ListComments(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
-// ListCommentsHTML returns a html snipet to be included in a web page.
-// User the `Accepted-Language` header for translations and the `X-Timezone`
-// header to set the comments display timezone.
+// ListCommentsHTML Returns a html with the comments in a given web page
+// @Summary List Comments HTML
+// @Description Returns a html with the comments in a given web page
+// @Accept json
+// @Produce html
+// @Param X-PageURL header string true "URL for the page originating the comment"
+// @Param X-Timezone header string true "User local timezone"
+// @Param Accepted-Language header string true "Idioma do usuário"
+// @Param client_uuid path string true "The client uuid"
+// @Success 200
+// @Router /comments/{client_uuid}/html [get]
 func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request) {
 
 	c := r.Context().Value(ctxClientKey).(Client)
@@ -321,8 +349,15 @@ func (s ParlanteServer) ListCommentsHTML(w http.ResponseWriter, r *http.Request)
 	w.Write(b)
 }
 
-// CountComments returns a json with the comments count for each url passed
-// in the request
+// CountComments Returns the comments count for each url passed in the request
+// @Summary Count comments
+// @Description Counts the comments in the requested urls
+// @Accept json
+// @Produce json
+// @Param client_uuid path string true "The client uuid"
+// @Param data body CountCommentsRequest true "URLs to count the comments from"
+// @Success 200 {object} CountCommentsResponse
+// @Router /comments/{client_uuid}/count [post]
 func (s ParlanteServer) CountComments(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)
@@ -362,8 +397,15 @@ func (s ParlanteServer) CountComments(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// CountCommentsHTML returns a json with a html snipet as the value for
-// the url count.
+// CountCommentsHTML Returns a html with the count for each url passed in the request
+// @Summary Count comments HTML
+// @Description Counts the comments in the requested urls
+// @Accept json
+// @Produce json
+// @Param client_uuid path string true "The client uuid"
+// @Param data body CountCommentsRequest true "URLs to count the comments from"
+// @Success 200
+// @Router /comments/{client_uuid}/count/html [post]
 func (s ParlanteServer) CountCommentsHTML(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)
@@ -428,8 +470,13 @@ func (s ParlanteServer) CountCommentsHTML(w http.ResponseWriter, r *http.Request
 	w.Write(j)
 }
 
-// GetPingMeForm returns a html snippet to be used as a contact form
-// in allowed domains
+// GetPingMeForm Return a html snippet to be include in a web page with a contact form
+// @Summary Get ping me form
+// @Accept json
+// @Produce html
+// @Param client_uuid path string true "The client uuid"
+// @Success 200
+// @Router /pingme/{client_uuid} [get]
 func (s ParlanteServer) GetPingMeForm(w http.ResponseWriter, r *http.Request) {
 	lang := getRequestLanguage(r)
 	tz := ""
@@ -452,7 +499,15 @@ func (s ParlanteServer) GetPingMeForm(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// PingMe send a message to a maildir
+// PingMe Send a contact message
+// @Summary Ping me
+// @Description Send a contact message
+// @Accept json
+// @Produce json
+// @Param client_uuid path string true "The client uuid"
+// @Param data body PingMeRequest true "Body for the contact request"
+// @Success 200
+// @Router /pingme/{client_uuid} [post]
 func (s ParlanteServer) PingMe(w http.ResponseWriter, r *http.Request) {
 	if r.Body == nil {
 		http.Error(w, "Missing body", http.StatusBadRequest)

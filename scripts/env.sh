@@ -1,7 +1,8 @@
 #!/bin/bash
 
+PROJECT="parlante"
 VENV_DIR="$HOME/.virtualenvs"
-DOCS_VENV_DIR="$VENV_DIR/parlante-docs"
+DOCS_VENV_DIR="$VENV_DIR/$PROJECT-docs"
 install_courtney(){
     echo "installing courtney"
     go get -u github.com/dave/courtney
@@ -22,6 +23,7 @@ if [ ! -d "$DOCS_VENV_DIR" ]
     source $DOCS_VENV_DIR/bin/activate
     echo "installing sphinx"
     pip install sphinx sphinx-pdj-theme
+    sphinx-quickstart -p $PROJECT docs --sep  -r v0.1
 }
 
 build_docs(){
@@ -29,6 +31,11 @@ build_docs(){
     cd docs
     make html
     cd ..
+    mkdir -p docs/build/swagger
+    cp docs/swagger/index.html docs/build/html/swagger/
+    cp docs/swagger/redoc.standalone.js docs/build/html/swagger/
+    swag init -o docs/build/html/swagger -g http.go
+    rm docs/build/html/swagger/docs.go
 }
 
 
