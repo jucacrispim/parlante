@@ -47,7 +47,7 @@ async function parlanteSubmitComment(parlante_url, client_uuid) {
     content: content,
   })
   let headers = new Headers();
-  headers.append("X-PageURL", window.location.href)
+  headers.append("X-PageURL", window.location.href.split('#')[0])
   headers.append('X-ClientUUID', client_uuid)
 
   let opts = {
