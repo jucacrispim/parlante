@@ -1,11 +1,12 @@
 async function parlanteLoadComments(parlante_url, client_uuid, container_id) {
-  let url = parlante_url + '/comment/' + client_uuid + '/html';
+  let url = parlante_url + '/comment/html';
   let container = document.getElementById(container_id);
   let lang = navigator.language;
   let tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   let headers = new Headers();
   headers.append("Accepted-Language", lang)
+  headers.append('X-ClientUUID', client_uuid)
   headers.append("X-Timezone", tz)
   headers.append("X-PageURL", window.location.href.split('#')[0])
 
@@ -33,7 +34,7 @@ async function parlanteLoadComments(parlante_url, client_uuid, container_id) {
 }
 
 async function parlanteSubmitComment(parlante_url, client_uuid) {
-  let url = parlante_url + '/comment/' + client_uuid;
+  let url = parlante_url + '/comment/';
   let authorEl = document.getElementById("parlante-author")
   let contentEl = document.getElementById("parlante-content")
   let author = authorEl.value;
@@ -47,6 +48,7 @@ async function parlanteSubmitComment(parlante_url, client_uuid) {
   })
   let headers = new Headers();
   headers.append("X-PageURL", window.location.href)
+  headers.append('X-ClientUUID', client_uuid)
 
   let opts = {
     method: "POST",
@@ -75,11 +77,12 @@ async function parlanteSubmitComment(parlante_url, client_uuid) {
 }
 
 async function parlanteCountComments(parlante_url, client_uuid, container_cls, comments_anchor) {
-  let url = parlante_url + '/comment/' + client_uuid + '/count/html';
+  let url = parlante_url + '/comment/count/html';
 
   let lang = navigator.language;
   let headers = new Headers();
   headers.append("Accepted-Language", lang)
+  headers.append('X-ClientUUID', client_uuid)
 
   let urls = []
   document.querySelectorAll('.' + container_cls).forEach(el => {
@@ -113,12 +116,13 @@ async function parlanteCountComments(parlante_url, client_uuid, container_cls, c
 }
 
 async function parlanteGetPingMeForm(parlante_url, client_uuid, container_id) {
-  let url = parlante_url + '/pingme/' + client_uuid;
+  let url = parlante_url + '/pingme/';
   let container = document.getElementById(container_id);
   let lang = navigator.language;
 
   let headers = new Headers();
   headers.append("Accepted-Language", lang)
+  headers.append('X-ClientUUID', client_uuid)
 
   let opts = {
     method: "GET",
@@ -144,7 +148,7 @@ async function parlanteGetPingMeForm(parlante_url, client_uuid, container_id) {
 }
 
 async function parlantePingMe(parlante_url, client_uuid) {
-  let url = parlante_url + '/pingme/' + client_uuid;
+  let url = parlante_url + '/pingme/';
   let name = document.getElementById("parlante-pingme-name").value;
   let email = document.getElementById("parlante-pingme-email").value
   let message = document.getElementById("parlante-pingme-content").value
@@ -157,6 +161,7 @@ async function parlantePingMe(parlante_url, client_uuid) {
     email: email,
   })
   let headers = new Headers();
+  headers.append('X-ClientUUID', client_uuid)
 
   let opts = {
     method: "POST",

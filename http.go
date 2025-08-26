@@ -604,7 +604,7 @@ func NewServer(c Config) ParlanteServer {
 // is a registered domain
 func (s ParlanteServer) checkClient(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		uuid := r.PathValue("uuid")
+		uuid := r.Header.Get("X-ClientUUID")
 		uuid = strings.ToLower(uuid)
 		var c Client
 		var err error
@@ -680,35 +680,35 @@ func getValidURLsForDomain(d ClientDomain, urls []string) []string {
 }
 
 func (s ParlanteServer) setupUrls() {
-	s.mux.Handle("POST /comment/{uuid}",
+	s.mux.Handle("POST /comment/",
 		s.checkClient(http.HandlerFunc(s.CreateComment)))
 
-	s.mux.Handle("GET /comment/{uuid}",
+	s.mux.Handle("GET /comment/",
 		s.checkClient(http.HandlerFunc(s.ListComments)))
-	s.mux.Handle("OPTIONS /comment/{uuid}", http.HandlerFunc(handleCORS))
+	s.mux.Handle("OPTIONS /comment/", http.HandlerFunc(handleCORS))
 
-	s.mux.Handle("GET /comment/{uuid}/html",
+	s.mux.Handle("GET /comment/html",
 		s.checkClient(http.HandlerFunc(s.ListCommentsHTML)))
-	s.mux.Handle("OPTIONS /comment/{uuid}/html", http.HandlerFunc(handleCORS))
+	s.mux.Handle("OPTIONS /comment/html", http.HandlerFunc(handleCORS))
 
 	s.mux.Handle("GET /parlante.js", http.HandlerFunc(s.ServeParlanteJS))
 
-	s.mux.Handle("POST /comment/{uuid}/count",
+	s.mux.Handle("POST /comment/count",
 		s.checkClient(http.HandlerFunc(s.CountComments)))
-	s.mux.Handle("OPTIONS /comment/{uuid}/count",
-		s.checkClient(http.HandlerFunc(handleCORS)))
+	s.mux.Handle("OPTIONS /comment/count",
+		http.HandlerFunc(handleCORS))
 
-	s.mux.Handle("POST /comment/{uuid}/count/html",
+	s.mux.Handle("POST /comment/count/html",
 		s.checkClient(http.HandlerFunc(s.CountCommentsHTML)))
-	s.mux.Handle("OPTIONS /comment/{uuid}/count/html",
-		s.checkClient(http.HandlerFunc(handleCORS)))
+	s.mux.Handle("OPTIONS /comment/count/html",
+		http.HandlerFunc(handleCORS))
 
-	s.mux.Handle("GET /pingme/{uuid}",
+	s.mux.Handle("GET /pingme/",
 		s.checkClient(http.HandlerFunc(s.GetPingMeForm)))
-	s.mux.Handle("POST /pingme/{uuid}",
+	s.mux.Handle("POST /pingme/",
 		s.checkClient(http.HandlerFunc(s.PingMe)))
-	s.mux.Handle("OPTIONS /pingme/{uuid}",
-		s.checkClient(http.HandlerFunc(handleCORS)))
+	s.mux.Handle("OPTIONS /pingme/",
+		http.HandlerFunc(handleCORS))
 
 }
 

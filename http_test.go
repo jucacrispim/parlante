@@ -79,7 +79,8 @@ func TestCreateComment(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+uuid, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
+				req.Header.Set("X-ClientUUID", uuid)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
@@ -95,7 +96,8 @@ func TestCreateComment(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bleble.net")
 				req.Header.Set("X-PageURL", "https://bleble.net/post")
 				return req
@@ -105,9 +107,10 @@ func TestCreateComment(t *testing.T) {
 		{
 			"comment missing body",
 			func() *http.Request {
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("POST", "/comment/", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -116,9 +119,10 @@ func TestCreateComment(t *testing.T) {
 			"comment bad body",
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte(""))
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -132,9 +136,10 @@ func TestCreateComment(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -185,10 +190,11 @@ func TestCreateComment_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
 				req.Header.Set("X-APIKey", "bad")
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -202,9 +208,10 @@ func TestCreateComment_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
 				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
@@ -280,9 +287,10 @@ func TestListComments(t *testing.T) {
 			"list comments with bad client",
 			func() *http.Request {
 				uuid, _ := GenUUID4()
-				req, _ := http.NewRequest("GET", "/comment/"+uuid, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", uuid)
 				return req
 			}(),
 			403,
@@ -290,9 +298,10 @@ func TestListComments(t *testing.T) {
 		{
 			"list comments with wrong origin",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
 				req.Header.Set("Origin", "https://bleble.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -300,8 +309,9 @@ func TestListComments(t *testing.T) {
 		{
 			"list comments without origin",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -309,7 +319,7 @@ func TestListComments(t *testing.T) {
 		{
 			"list comments options",
 			func() *http.Request {
-				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("OPTIONS", "/comment/", nil)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
@@ -318,9 +328,10 @@ func TestListComments(t *testing.T) {
 		{
 			"list comments ok",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -394,10 +405,11 @@ func TestListComments_auth(t *testing.T) {
 		{
 			"list comments with bad key",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
 				req.Header.Set("X-APIKey", "bad")
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -405,10 +417,11 @@ func TestListComments_auth(t *testing.T) {
 		{
 			"list comments ok",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
 				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -482,9 +495,10 @@ func TestListCommentsHTML(t *testing.T) {
 			"list comments html with bad client",
 			func() *http.Request {
 				uuid, _ := GenUUID4()
-				req, _ := http.NewRequest("GET", "/comment/"+uuid+"/html", nil)
+				req, _ := http.NewRequest("GET", "/comment/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", uuid)
 				return req
 			}(),
 			403,
@@ -493,9 +507,10 @@ func TestListCommentsHTML(t *testing.T) {
 			"list comments html with wrong origin",
 			func() *http.Request {
 				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+					"GET", "/comment/html", nil)
 				req.Header.Set("Origin", "https://bleble.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -504,8 +519,9 @@ func TestListCommentsHTML(t *testing.T) {
 			"list comments html without origin",
 			func() *http.Request {
 				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+					"GET", "/comment/html", nil)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -513,7 +529,7 @@ func TestListCommentsHTML(t *testing.T) {
 		{
 			"list comments options",
 			func() *http.Request {
-				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID+"/html", nil)
+				req, _ := http.NewRequest("OPTIONS", "/comment/html", nil)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 			}(),
@@ -523,9 +539,10 @@ func TestListCommentsHTML(t *testing.T) {
 			"list comments html ok",
 			func() *http.Request {
 				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+					"GET", "/comment/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -534,9 +551,10 @@ func TestListCommentsHTML(t *testing.T) {
 			"list comments html ok with language",
 			func() *http.Request {
 				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+					"GET", "/comment/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Accepted-Language", "pt-BR")
 				return req
 			}(),
@@ -546,9 +564,10 @@ func TestListCommentsHTML(t *testing.T) {
 			"list comments html ok with missing language",
 			func() *http.Request {
 				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+					"GET", "/comment/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Accepted-Language", "es-AR")
 				return req
 			}(),
@@ -623,10 +642,11 @@ func TestListCommentsHTML_Auth(t *testing.T) {
 		{
 			"list comments html with bad key",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
+				req, _ := http.NewRequest("GET", "/comment/html", nil)
 				req.Header.Set("X-APIKey", "bad")
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -635,10 +655,11 @@ func TestListCommentsHTML_Auth(t *testing.T) {
 			"list comments html ok",
 			func() *http.Request {
 				req, _ := http.NewRequest(
-					"GET", "/comment/"+c.UUID+"/html", nil)
+					"GET", "/comment/html", nil)
 				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -717,8 +738,9 @@ func TestCountComments(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+uuid+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", uuid)
 				return req
 			}(),
 			403,
@@ -731,8 +753,9 @@ func TestCountComments(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("Origin", "https://bleble.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -745,7 +768,8 @@ func TestCountComments(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -754,8 +778,9 @@ func TestCountComments(t *testing.T) {
 			"count comments malformed payload",
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte("bad"))
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			400,
@@ -763,7 +788,7 @@ func TestCountComments(t *testing.T) {
 		{
 			"count comments options",
 			func() *http.Request {
-				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID+"/count", nil)
+				req, _ := http.NewRequest("OPTIONS", "/comment/count", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 			}(),
@@ -778,8 +803,9 @@ func TestCountComments(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -858,9 +884,10 @@ func TestCountComments_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("X-APIKey", "bad")
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -873,9 +900,10 @@ func TestCountComments_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -954,8 +982,9 @@ func TestCountCommentsHTML(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+uuid+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", uuid)
 				return req
 			}(),
 			403,
@@ -968,8 +997,9 @@ func TestCountCommentsHTML(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("Origin", "https://bleble.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -982,8 +1012,9 @@ func TestCountCommentsHTML(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			403,
@@ -992,9 +1023,10 @@ func TestCountCommentsHTML(t *testing.T) {
 			"count comments html malformed payload",
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte("bad"))
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			400,
@@ -1003,7 +1035,7 @@ func TestCountCommentsHTML(t *testing.T) {
 		{
 			"count comments html options",
 			func() *http.Request {
-				req, _ := http.NewRequest("OPTIONS", "/comment/"+c.UUID+"/count/html", nil)
+				req, _ := http.NewRequest("OPTIONS", "/comment/count/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 			}(),
@@ -1018,8 +1050,9 @@ func TestCountCommentsHTML(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -1099,9 +1132,10 @@ func TestCountCommentsHTML_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+uuid+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("X-APIKey", "Bad")
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", uuid)
 				return req
 			}(),
 			403,
@@ -1114,9 +1148,10 @@ func TestCountCommentsHTML_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 			}(),
 			200,
@@ -1170,8 +1205,9 @@ func TestGetPingMeForm(t *testing.T) {
 		{
 			"pingme form bad client",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/pingme/xxx", nil)
+				req, _ := http.NewRequest("GET", "/pingme/", nil)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", "xxx")
 				return req
 
 			}(),
@@ -1180,8 +1216,9 @@ func TestGetPingMeForm(t *testing.T) {
 		{
 			"pingme form wrong origin",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/pingme/", nil)
 				req.Header.Set("Origin", "https://blable.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1190,8 +1227,9 @@ func TestGetPingMeForm(t *testing.T) {
 		{
 			"pingme form GET",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/pingme/", nil)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1200,7 +1238,7 @@ func TestGetPingMeForm(t *testing.T) {
 		{
 			"pingme form OPTIONS",
 			func() *http.Request {
-				req, _ := http.NewRequest("OPTIONS", "/pingme/"+c.UUID, nil)
+				req, _ := http.NewRequest("OPTIONS", "/pingme/", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 
@@ -1243,9 +1281,10 @@ func TestGetPingMeForm_Auth(t *testing.T) {
 		{
 			"pingme form bad client",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/pingme/", nil)
 				req.Header.Set("X-APIKey", "bad")
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1254,9 +1293,10 @@ func TestGetPingMeForm_Auth(t *testing.T) {
 		{
 			"pingme form GET",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/pingme/", nil)
 				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1310,8 +1350,9 @@ func TestPingMe(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+uuid, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", uuid)
 				return req
 
 			}(),
@@ -1329,8 +1370,9 @@ func TestPingMe(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
 				req.Header.Set("Origin", "https://bleble.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1341,9 +1383,10 @@ func TestPingMe(t *testing.T) {
 		{
 			"pingme missing body",
 			func() *http.Request {
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, nil)
+				req, _ := http.NewRequest("POST", "/pingme/", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1355,7 +1398,8 @@ func TestPingMe(t *testing.T) {
 			"pingme bad body",
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte(""))
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 
@@ -1373,7 +1417,8 @@ func TestPingMe(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 
@@ -1391,7 +1436,8 @@ func TestPingMe(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 
@@ -1409,7 +1455,8 @@ func TestPingMe(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 
@@ -1428,8 +1475,9 @@ func TestPingMe(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1447,7 +1495,8 @@ func TestPingMe(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 
@@ -1512,8 +1561,9 @@ func TestPingMe_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
 				req.Header.Set("X-APIKey", "bad")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				return req
 
@@ -1532,9 +1582,10 @@ func TestPingMe_Auth(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
 				req.Header.Set("X-APIKey", key)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1597,7 +1648,8 @@ func TestComments_WithErrors(t *testing.T) {
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
 				uuid := client_storage.BadClientUUID
-				req, _ := http.NewRequest("POST", "/comment/"+uuid, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
+				req.Header.Set("X-ClientUUID", uuid)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
@@ -1614,7 +1666,8 @@ func TestComments_WithErrors(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bad.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
@@ -1631,8 +1684,9 @@ func TestComments_WithErrors(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post")
 				return req
 
@@ -1644,8 +1698,9 @@ func TestComments_WithErrors(t *testing.T) {
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte("bad body"))
 
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/comment/", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
@@ -1655,7 +1710,8 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"list comments with db error getting comments",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", comment_storage.BadPage)
 				return req
@@ -1666,7 +1722,8 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"list comments error marshal json",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/comment/", nil)
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
@@ -1677,8 +1734,9 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"list comments html with db error getting comments",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
+				req, _ := http.NewRequest("GET", "/comment/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", comment_storage.BadPage)
 				return req
 
@@ -1688,9 +1746,10 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"list comments html error render html",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/comment/"+c.UUID+"/html", nil)
+				req, _ := http.NewRequest("GET", "/comment/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1699,8 +1758,9 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"count comments missing body",
 			func() *http.Request {
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", nil)
+				req, _ := http.NewRequest("POST", "/comment/count", nil)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
@@ -1712,8 +1772,9 @@ func TestComments_WithErrors(t *testing.T) {
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte("bad body"))
 
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
@@ -1729,8 +1790,9 @@ func TestComments_WithErrors(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count", body)
+				req, _ := http.NewRequest("POST", "/comment/count", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
@@ -1740,9 +1802,10 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"count comments html missing body",
 			func() *http.Request {
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", nil)
+				req, _ := http.NewRequest("POST", "/comment/count/html", nil)
 				req.Header.Set("Origin", "https://bla.net")
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1753,8 +1816,9 @@ func TestComments_WithErrors(t *testing.T) {
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte("bad body"))
 
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
@@ -1770,8 +1834,9 @@ func TestComments_WithErrors(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
@@ -1787,8 +1852,9 @@ func TestComments_WithErrors(t *testing.T) {
 				}
 				j, _ := json.Marshal(payload)
 				body := bytes.NewBuffer(j)
-				req, _ := http.NewRequest("POST", "/comment/"+c.UUID+"/count/html", body)
+				req, _ := http.NewRequest("POST", "/comment/count/html", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				req.Header.Set("X-PageURL", "https://bla.net/post1")
 				return req
 
@@ -1798,8 +1864,9 @@ func TestComments_WithErrors(t *testing.T) {
 		{
 			"get pingme form error rendering html",
 			func() *http.Request {
-				req, _ := http.NewRequest("GET", "/pingme/"+c.UUID, nil)
+				req, _ := http.NewRequest("GET", "/pingme/", nil)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
@@ -1809,8 +1876,9 @@ func TestComments_WithErrors(t *testing.T) {
 			"pingme error reading body",
 			func() *http.Request {
 				body := bytes.NewBuffer([]byte("bad body"))
-				req, _ := http.NewRequest("POST", "/pingme/"+c.UUID, body)
+				req, _ := http.NewRequest("POST", "/pingme/", body)
 				req.Header.Set("Origin", "https://bla.net")
+				req.Header.Set("X-ClientUUID", c.UUID)
 				return req
 
 			}(),
