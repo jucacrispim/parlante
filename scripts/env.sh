@@ -31,10 +31,10 @@ build_docs(){
     cd docs
     make html
     cd ..
-    mkdir -p docs/build/swagger
+    mkdir -p docs/build/html/swagger
+    swag init -o docs/build/html/swagger -g http.go
     cp docs/swagger/index.html docs/build/html/swagger/
     cp docs/swagger/redoc.standalone.js docs/build/html/swagger/
-    swag init -o docs/build/html/swagger -g http.go
     rm docs/build/html/swagger/docs.go
 }
 

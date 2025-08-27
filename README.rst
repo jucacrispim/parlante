@@ -40,3 +40,6 @@ To display the comments in your web page use this:
 
    <div id="#comments-container"></div>
    <script src="<PARLANTE_URL>/parlante.js" async onload="parlanteLoadComments('<PARLANTE_URL>', '<CLIENT_UUID>', 'comments-container')"></script>
+
+
+For more information check `the full documentation <https://docs.poraodojuca.dev/parlante/>`_
